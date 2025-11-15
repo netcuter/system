@@ -13,7 +13,9 @@ from security_audit.scanners import (
     SecretsDetector,
     DependencyScanner,
     ASVSScanner,
-    MultiLanguageScanner
+    MultiLanguageScanner,
+    AdvancedPatternsScanner,
+    DataFlowScanner
 )
 from security_audit.reporters import (
     JSONReporter,
@@ -85,7 +87,7 @@ Examples:
     parser.add_argument(
         '--scanners',
         type=str,
-        help='Comma-separated list of scanners to run (web,secrets,dependencies,asvs,multilang)'
+        help='Comma-separated list of scanners to run (web,secrets,dependencies,asvs,multilang,advanced,dataflow)'
     )
 
     parser.add_argument(
@@ -105,7 +107,7 @@ Examples:
     parser.add_argument(
         '--version',
         action='version',
-        version='Security Audit System v1.0.0'
+        version='Security Audit System v2.4.0 - SonarQube Professional Level'
     )
 
     args = parser.parse_args()
@@ -125,7 +127,7 @@ Examples:
         scanner_names = [s.strip() for s in args.scanners.split(',')]
         scanners_to_run = scanner_names
     else:
-        scanners_to_run = ['web', 'secrets', 'dependencies', 'asvs', 'multilang']
+        scanners_to_run = ['web', 'secrets', 'dependencies', 'asvs', 'multilang', 'advanced', 'dataflow']
 
     if 'web' in scanners_to_run:
         web_scanner = WebVulnerabilityScanner(config.get_scanner_config('web_vulnerabilities'))
@@ -158,6 +160,18 @@ Examples:
         engine.register_scanner(ml_scanner)
         if args.verbose:
             print(f"[+] Registered: {ml_scanner.get_name()}")
+
+    if 'advanced' in scanners_to_run:
+        advanced_scanner = AdvancedPatternsScanner(config.get_scanner_config('advanced_patterns'))
+        engine.register_scanner(advanced_scanner)
+        if args.verbose:
+            print(f"[+] Registered: {advanced_scanner.get_name()}")
+
+    if 'dataflow' in scanners_to_run:
+        dataflow_scanner = DataFlowScanner(config.get_scanner_config('dataflow'))
+        engine.register_scanner(dataflow_scanner)
+        if args.verbose:
+            print(f"[+] Registered: {dataflow_scanner.get_name()}")
 
     # Validate path
     project_path = Path(args.path).resolve()
@@ -212,7 +226,9 @@ def print_banner():
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
 ║         Security Audit System for Web Applications           ║
-║                         Version 1.0.0                         ║
+║                         Version 2.4.0                         ║
+║              🔥 SonarQube Professional Level 🔥               ║
+║         Data Flow • Call Graph • Framework-Aware              ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
     """
