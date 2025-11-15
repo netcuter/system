@@ -1,55 +1,64 @@
 """
 AI Assistant for Enhanced Vulnerability Analysis
-OPTIONAL - requires user consent
-PRIVACY-FIRST - code is anonymized before sending
+Uses LOCAL LM Studio server (100% offline by default)
 
 Features:
-- User consent required (per-request OR always for project)
-- Code anonymization before AI analysis
-- Offline-first - works without AI
-- Optional Claude.ai integration for deep analysis
+- 100% LOCAL - LM Studio server (localhost OR remote in LAN)
+- Auto-detects model from LM Studio /v1/models endpoint
+- Adjusts prompts for model type (DeepHat, Qwen Coder, generic)
+- User consent optional (can auto-approve with --ai-always-consent)
+- Code anonymization before analysis
+- Works offline without internet
 """
 import json
-import os
+import requests
 from typing import Dict, List, Any, Optional, Tuple
-from pathlib import Path
 
 from .anonymizer import CodeAnonymizer
 
 
 class AIAssistant:
     """
-    Optional AI-powered vulnerability analysis
+    LOCAL AI-powered vulnerability analysis using LM Studio
 
     Privacy & Security:
-    1. Asks for user permission BEFORE sending
-    2. Anonymizes code (removes sensitive data)
-    3. Option to enable for entire project (always consent)
-    4. Can be fully disabled
-    5. Works offline without AI (falls back to ML only)
+    1. 100% LOCAL - no external APIs
+    2. Works with localhost OR remote LM Studio server in LAN
+    3. Auto-detects model from server
+    4. Optional code anonymization
+    5. Optional user consent system
 
-    User options:
-    - [y] Yes, analyze this one finding
-    - [N] No, skip this finding (default)
-    - [always] Yes to all in this project
-    - [never] Disable AI for this session
+    Server configuration:
+    - http://localhost:1234 (default - local LM Studio)
+    - http://192.168.1.100:1234 (remote server in LAN)
+    - http://10.0.0.50:8080 (custom port)
+
+    Supported models:
+    - DeepHat (security specialist) - uses CWE/MITRE prompts
+    - Qwen2.5-Coder (code specialist) - uses code-focused prompts
+    - Any other model - uses generic security prompts
     """
 
-    def __init__(self, api_key: Optional[str] = None, enabled: bool = False,
-                 always_consent: bool = False):
+    def __init__(self, server_url: str = "http://localhost:1234",
+                 enabled: bool = False, always_consent: bool = False):
         """
-        Initialize AI Assistant
+        Initialize AI Assistant with LM Studio
 
         Args:
-            api_key: Claude API key (optional)
+            server_url: LM Studio server URL (default: http://localhost:1234)
             enabled: Enable AI assistant
-            always_consent: Auto-approve all AI requests (with anonymization)
+            always_consent: Auto-approve all AI requests (skip prompts)
         """
         self.enabled = enabled
-        self.api_key = api_key
+        self.server_url = server_url.rstrip('/') + '/v1'
         self.always_consent = always_consent
         self.never_consent = False
         self.anonymizer = CodeAnonymizer()
+
+        # Model info (auto-detected)
+        self.model = None
+        self.model_info = {}
+        self.model_type = 'generic'  # 'deephat', 'qwen-coder', or 'generic'
 
         # Statistics
         self.stats = {
@@ -60,10 +69,91 @@ class AIAssistant:
             'false_positives_caught': 0,
         }
 
+        # Initialize connection to LM Studio
+        if self.enabled:
+            self._initialize_connection()
+
+    def _initialize_connection(self) -> bool:
+        """
+        Connect to LM Studio and auto-detect model
+
+        Returns:
+            True if successfully connected
+        """
+        try:
+            # 1. Check if LM Studio server is reachable
+            response = requests.get(
+                f"{self.server_url}/models",
+                timeout=5
+            )
+
+            if response.status_code != 200:
+                print(f"\n⚠️  LM Studio server not responding: {self.server_url}")
+                print("   Make sure LM Studio is running with a loaded model")
+                self.enabled = False
+                return False
+
+            # 2. Get available models
+            models_data = response.json()
+
+            if not models_data.get('data'):
+                print(f"\n⚠️  No models loaded in LM Studio: {self.server_url}")
+                print("   Please load a model in LM Studio first")
+                self.enabled = False
+                return False
+
+            # 3. Auto-select first loaded model
+            first_model = models_data['data'][0]
+            self.model = first_model.get('id', 'local-model')
+            self.model_info = first_model
+
+            # 4. Detect model type for optimized prompts
+            model_name = self.model.lower()
+            if 'deephat' in model_name:
+                self.model_type = 'deephat'
+            elif 'qwen' in model_name and 'coder' in model_name:
+                self.model_type = 'qwen-coder'
+            else:
+                self.model_type = 'generic'
+
+            # 5. Display connection info
+            print(f"\n✅ LM Studio connected!")
+            print(f"   Server: {self.server_url}")
+            print(f"   Model: {self.model}")
+
+            if self.model_type == 'deephat':
+                print(f"   🎩 Security specialist detected! (DeepHat)")
+                print(f"      → Using CWE/MITRE-focused prompts")
+            elif self.model_type == 'qwen-coder':
+                print(f"   💻 Code specialist detected! (Qwen Coder)")
+                print(f"      → Using code-focused security prompts")
+            else:
+                print(f"   🤖 Generic model detected")
+                print(f"      → Using standard security prompts")
+
+            if self.always_consent:
+                print(f"   ⚡ Auto-consent enabled (no prompts)")
+
+            print()
+
+            return True
+
+        except requests.exceptions.ConnectionError:
+            print(f"\n❌ Cannot connect to LM Studio: {self.server_url}")
+            print("   Make sure LM Studio server is running!")
+            print("   Check: Server → Enable CORS → Start server")
+            self.enabled = False
+            return False
+
+        except Exception as e:
+            print(f"\n⚠️  LM Studio initialization error: {e}")
+            self.enabled = False
+            return False
+
     def analyze_finding(self, finding: Dict[str, Any],
                        ask_permission: bool = True) -> Optional[Dict[str, Any]]:
         """
-        Analyze vulnerability finding with AI
+        Analyze vulnerability finding with local AI
 
         Args:
             finding: Vulnerability finding dictionary
@@ -75,10 +165,6 @@ class AIAssistant:
 
         # Check if AI is enabled
         if not self.enabled or self.never_consent:
-            return None
-
-        # Check API key
-        if not self.api_key and not self._is_mock_mode():
             return None
 
         # Ask for permission (unless always_consent is True)
@@ -106,14 +192,11 @@ class AIAssistant:
 
         anon_code, mapping = self.anonymizer.anonymize(code)
 
-        # Build AI prompt
-        prompt = self._build_analysis_prompt(finding, anon_code)
+        # Build AI prompt (optimized for model type)
+        system_prompt, user_prompt = self._build_analysis_prompt(finding, anon_code)
 
-        # Call AI (or mock if no API key)
-        if self._is_mock_mode():
-            result = self._mock_analysis(finding, anon_code)
-        else:
-            result = self._call_claude_api(prompt)
+        # Call LM Studio API
+        result = self._call_lmstudio_api(system_prompt, user_prompt)
 
         # Update statistics
         self.stats['total_analyzed'] += 1
@@ -126,12 +209,12 @@ class AIAssistant:
 
     def _ask_user_consent(self, finding: Dict[str, Any]) -> str:
         """
-        Ask user for permission to send code to AI
+        Ask user for permission to analyze with AI
 
         Returns: 'yes', 'no', 'always', or 'never'
         """
         print("\n" + "="*70)
-        print("🤖 AI ASSISTANT - Prosi o Pozwolenie")
+        print("🤖 LOCAL AI ASSISTANT - Prosi o Pozwolenie")
         print("="*70)
         print(f"\nPodatność do analizy:")
         print(f"  Typ: {finding.get('title', 'Unknown')}")
@@ -139,30 +222,17 @@ class AIAssistant:
         print(f"  Plik: {finding.get('file_path', 'Unknown')}")
         print(f"  Linia: {finding.get('line_number', '?')}")
 
-        # Show anonymized preview
-        code = finding.get('code_snippet', '')
-        if code:
-            preview = self.anonymizer.preview_anonymization(code, max_length=150)
-            print("\n📝 Podgląd ANONIMIZOWANEGO kodu (będzie wysłany):")
-            print("-" * 70)
-            anon_code, _ = self.anonymizer.anonymize(code)
-            print(anon_code[:150] + "..." if len(anon_code) > 150 else anon_code)
-            print("-" * 70)
+        print(f"\n🖥️  Model LLM: {self.model}")
+        print(f"   Server: {self.server_url}")
+        print(f"   Typ: {self.model_type.upper()}")
 
-            stats = self.anonymizer.get_anonymization_stats()
-            print(f"\n🔒 Anonimizacja:")
-            print(f"  - Zmiennych: {stats['variables_anonymized']}")
-            print(f"  - Stringów: {stats['strings_anonymized']}")
-            print(f"  - Funkcji: {stats['functions_anonymized']}")
+        print("\n⚠️  Kod będzie wysłany do LOKALNEGO serwera LM Studio")
+        print("   (100% offline, bez internetu)")
 
-        print("\n⚠️  ŻADNE wrażliwe dane NIE będą wysłane!")
-        print("   Zmienne/stringi zastąpione placeholderami")
-        print("   Tylko struktura kodu jest analizowana\n")
-
-        print("Opcje:")
-        print("  [y]      Tak, wyślij TEN znalezisko do Claude.ai")
+        print("\nOpcje:")
+        print("  [y]      Tak, wyślij TEN finding do analizy")
         print("  [N]      Nie, pomiń (domyślnie)")
-        print("  [always] Tak, automatycznie dla CAŁEGO projektu (z anonimizacją)")
+        print("  [always] Tak, automatycznie dla CAŁEGO projektu")
         print("  [never]  Nigdy nie pytaj w tej sesji (wyłącz AI)")
 
         try:
@@ -171,8 +241,7 @@ class AIAssistant:
             if choice == 'y' or choice == 'yes':
                 return 'yes'
             elif choice == 'always':
-                print("\n✅ AI Assistant włączony automatycznie dla całego projektu!")
-                print("   (Kod nadal będzie anonimizowany)\n")
+                print("\n✅ AI Assistant włączony automatycznie dla całego projektu!\n")
                 return 'always'
             elif choice == 'never':
                 print("\n❌ AI Assistant wyłączony dla tej sesji.\n")
@@ -183,96 +252,168 @@ class AIAssistant:
             print("\n\n❌ Przerwano. AI wyłączony.\n")
             return 'never'
 
-    def _build_analysis_prompt(self, finding: Dict[str, Any], anon_code: str) -> str:
-        """Build AI analysis prompt"""
-        prompt = f"""Przeanalizuj ten kod pod kątem podatności bezpieczeństwa.
+    def _build_analysis_prompt(self, finding: Dict[str, Any],
+                              anon_code: str) -> Tuple[str, str]:
+        """
+        Build AI analysis prompt optimized for model type
 
-KOD (ANONIMIZOWANY):
+        Returns:
+            (system_prompt, user_prompt)
+        """
+
+        # System prompt varies by model type
+        if self.model_type == 'deephat':
+            # DeepHat: security specialist with CWE/MITRE knowledge
+            system_prompt = """You are DeepHat, a cybersecurity expert AI specialized in vulnerability analysis.
+You have deep knowledge of OWASP Top 10, CWE Top 25, and MITRE ATT&CK framework.
+Analyze code for security vulnerabilities with precision.
+ALWAYS respond with VALID JSON only, no markdown, no explanations outside JSON."""
+
+            user_prompt = f"""Analyze this potential {finding.get('title', 'vulnerability')}.
+
+CODE (line {finding.get('line_number', '?')}):
 ```
 {anon_code}
 ```
 
-PODEJRZANA PODATNOŚĆ:
-- Typ: {finding.get('title', 'Unknown')}
+SUSPECTED VULNERABILITY:
+- Type: {finding.get('title', 'Unknown')}
 - Severity: {finding.get('severity', 'Unknown')}
 - CWE: {finding.get('cwe_id', 'Unknown')}
-- Opis: {finding.get('description', 'Brak opisu')}
+- Description: {finding.get('description', 'No description')}
 
-PYTANIE:
-Czy to jest PRAWDZIWA podatność czy FALSE POSITIVE?
+ASSESSMENT CRITERIA:
+1. Is this a REAL vulnerability or FALSE POSITIVE?
+2. Can you trace user input → sink?
+3. Is there sanitization/validation present?
+4. Is this a framework-safe pattern?
+5. What's the exploitability level?
 
-Odpowiedz w JSON:
+Respond with VALID JSON:
 {{
   "is_real_vulnerability": true/false,
   "confidence": 0.0-1.0,
-  "reasoning": "wyjaśnienie po polsku",
-  "severity_adjustment": "CRITICAL/HIGH/MEDIUM/LOW/INFO lub null",
-  "recommendation": "konkretna rekomendacja naprawy"
-}}
+  "reasoning": "technical explanation of your assessment",
+  "cwe_id": "CWE-XXX",
+  "exploitability": "low/medium/high/critical",
+  "attack_scenario": "brief description how this could be exploited",
+  "recommendation": "specific fix recommendation"
+}}"""
 
-Pamiętaj:
-- Kod jest ANONIMIZOWANY (var_1, var_2, etc.)
-- Analizuj STRUKTURĘ i FLOW, nie konkretne nazwy
-- Zwróć uwagę na pattern matching vs rzeczywiste zagrożenie
-"""
-        return prompt
+        elif self.model_type == 'qwen-coder':
+            # Qwen Coder: code-focused security analysis
+            system_prompt = """You are a code security expert specializing in vulnerability detection.
+Analyze code for security issues using static analysis principles.
+ALWAYS respond with VALID JSON only."""
 
-    def _call_claude_api(self, prompt: str) -> Optional[Dict[str, Any]]:
+            user_prompt = f"""Is this {finding.get('title', 'vulnerability')} REAL or FALSE POSITIVE?
+
+CODE:
+```
+{anon_code}
+```
+
+FINDING:
+- Type: {finding.get('title', 'Unknown')}
+- Severity: {finding.get('severity', 'Unknown')}
+
+ANALYZE:
+1. Real vulnerability or false positive?
+2. Data flow: user input → dangerous operation?
+3. Sanitization/validation present?
+4. Safe framework pattern?
+
+JSON response:
+{{
+  "is_real_vulnerability": true/false,
+  "confidence": 0.0-1.0,
+  "reasoning": "technical explanation",
+  "recommendation": "fix suggestion"
+}}"""
+
+        else:
+            # Generic model: simple security prompt
+            system_prompt = """You are a security code auditor.
+Analyze code for vulnerabilities.
+Respond ONLY with valid JSON."""
+
+            user_prompt = f"""Is this {finding.get('title', 'issue')} a real vulnerability?
+
+Code:
+```
+{anon_code}
+```
+
+Severity: {finding.get('severity', 'Unknown')}
+
+JSON response:
+{{
+  "is_real_vulnerability": true/false,
+  "confidence": 0.0-1.0,
+  "reasoning": "brief explanation"
+}}"""
+
+        return system_prompt, user_prompt
+
+    def _call_lmstudio_api(self, system_prompt: str, user_prompt: str) -> Optional[Dict[str, Any]]:
         """
-        Call Claude AI API
+        Call LM Studio API (OpenAI-compatible)
 
-        NOTE: This is a placeholder - requires actual Anthropic API integration
-        For production use, install: pip install anthropic
+        Args:
+            system_prompt: System message
+            user_prompt: User message
+
+        Returns:
+            Parsed JSON response or None
         """
         try:
-            # This would be actual API call:
-            # import anthropic
-            # client = anthropic.Anthropic(api_key=self.api_key)
-            # message = client.messages.create(
-            #     model="claude-3-5-sonnet-20241022",
-            #     max_tokens=1024,
-            #     messages=[{"role": "user", "content": prompt}]
-            # )
-            # response_text = message.content[0].text
-            # return json.loads(response_text)
+            response = requests.post(
+                f"{self.server_url}/chat/completions",
+                json={
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "temperature": 0.2,  # Low temperature for consistent security analysis
+                    "max_tokens": 500,
+                },
+                timeout=30
+            )
 
-            # For now, return None (not implemented)
-            print("⚠️  Claude API integration not yet implemented")
-            print("   Install: pip install anthropic")
-            print("   Falling back to mock analysis...\n")
+            if response.status_code != 200:
+                print(f"⚠️  LM Studio API error: {response.status_code}")
+                return None
+
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+
+            # Parse JSON (handle markdown code blocks if model adds them)
+            ai_response = ai_response.strip()
+            if ai_response.startswith('```'):
+                # Remove markdown code fences
+                lines = ai_response.split('\n')
+                ai_response = '\n'.join(lines[1:-1]) if len(lines) > 2 else ai_response
+                if ai_response.startswith('json'):
+                    ai_response = ai_response[4:].strip()
+
+            # Parse JSON
+            analysis = json.loads(ai_response.strip())
+
+            return analysis
+
+        except json.JSONDecodeError as e:
+            print(f"⚠️  AI response not valid JSON: {e}")
+            print(f"   Response was: {ai_response[:200]}")
+            return None
+
+        except requests.exceptions.Timeout:
+            print(f"⚠️  LM Studio request timeout (>30s)")
             return None
 
         except Exception as e:
-            print(f"⚠️  AI API Error: {e}")
+            print(f"⚠️  AI analysis error: {e}")
             return None
-
-    def _is_mock_mode(self) -> bool:
-        """Check if running in mock mode (no API key)"""
-        return not self.api_key or self.api_key == "mock"
-
-    def _mock_analysis(self, finding: Dict[str, Any], anon_code: str) -> Dict[str, Any]:
-        """
-        Mock AI analysis for demonstration
-        Returns simulated AI response
-        """
-        # Simple heuristic for mock
-        severity = finding.get('severity', 'MEDIUM')
-        code_lower = anon_code.lower()
-
-        # Check for sanitization indicators in anonymized code
-        has_sanitization = any(keyword in code_lower for keyword in
-                             ['escape', 'sanitize', 'validate', 'filter'])
-
-        # Mock decision
-        is_real = not has_sanitization and severity in ['CRITICAL', 'HIGH']
-
-        return {
-            'is_real_vulnerability': is_real,
-            'confidence': 0.75 if is_real else 0.60,
-            'reasoning': f"Mock analysis: {'Prawdopodobnie prawdziwa podatność' if is_real else 'Możliwy false positive'} - detected {'sanitization' if has_sanitization else 'no protection'}",
-            'severity_adjustment': None,
-            'recommendation': "Użyj prawdziwego AI API dla dokładnej analizy (pip install anthropic)"
-        }
 
     def enhance_findings(self, findings: List[Dict[str, Any]],
                         max_analyze: int = None) -> Tuple[List[Dict], List[Dict]]:
@@ -293,26 +434,47 @@ Pamiętaj:
         false_positives = []
 
         count = 0
-        for finding in findings:
+        total = len(findings)
+
+        print(f"\n🤖 Analyzing {total} findings with LOCAL AI...")
+        print(f"   Model: {self.model} ({self.model_type})")
+        print(f"   Server: {self.server_url}\n")
+
+        for i, finding in enumerate(findings, 1):
             # Limit if specified
             if max_analyze and count >= max_analyze:
                 confirmed.append(finding)
                 continue
+
+            # Progress indicator
+            if not self.always_consent:
+                print(f"[{i}/{total}] Analyzing: {finding.get('title', 'Unknown')}")
 
             # Analyze with AI
             ai_result = self.analyze_finding(finding, ask_permission=True)
 
             if ai_result:
                 finding['ai_analysis'] = ai_result
+                finding['ai_model'] = self.model
+                finding['ai_confidence'] = ai_result.get('confidence', 0.5)
                 count += 1
 
                 if ai_result.get('is_real_vulnerability', True):
                     confirmed.append(finding)
+                    if self.always_consent:
+                        print(f"   ✅ [{i}/{total}] REAL: {finding.get('title')} (confidence: {ai_result.get('confidence', 0):.1%})")
                 else:
                     false_positives.append(finding)
+                    if self.always_consent:
+                        print(f"   ❌ [{i}/{total}] FALSE POSITIVE: {finding.get('title')} (confidence: {ai_result.get('confidence', 0):.1%})")
             else:
                 # No AI analysis - keep original
                 confirmed.append(finding)
+
+        print(f"\n📊 AI Analysis Complete:")
+        print(f"   ✅ Analyzed: {count}/{total}")
+        print(f"   ✅ Real vulnerabilities: {len(confirmed)}")
+        print(f"   ❌ False positives: {len(false_positives)}")
 
         return confirmed, false_positives
 
@@ -322,7 +484,10 @@ Pamiętaj:
             **self.stats,
             'always_consent_enabled': self.always_consent,
             'never_consent_enabled': self.never_consent,
-            'api_configured': bool(self.api_key),
+            'server_url': self.server_url,
+            'model': self.model,
+            'model_type': self.model_type,
+            'connected': self.enabled,
         }
 
     def print_statistics(self):
@@ -330,13 +495,15 @@ Pamiętaj:
         stats = self.get_statistics()
 
         print("\n" + "="*70)
-        print("🤖 AI ASSISTANT - Statystyki Sesji")
+        print("🤖 LOCAL AI ASSISTANT - Statystyki Sesji")
         print("="*70)
-        print(f"Total analyzed: {stats['total_analyzed']}")
+        print(f"Server: {stats['server_url']}")
+        print(f"Model: {stats['model']} ({stats['model_type']})")
+        print(f"Connected: {'✅ Yes' if stats['connected'] else '❌ No'}")
+        print(f"\nTotal analyzed: {stats['total_analyzed']}")
         print(f"Consents given: {stats['consents_given']}")
         print(f"Consents denied: {stats['consents_denied']}")
         print(f"Vulnerabilities confirmed: {stats['vulnerabilities_confirmed']}")
         print(f"False positives caught: {stats['false_positives_caught']}")
         print(f"Always consent: {'✅ Enabled' if stats['always_consent_enabled'] else '❌ Disabled'}")
-        print(f"API configured: {'✅ Yes' if stats['api_configured'] else '❌ No (mock mode)'}")
         print("="*70 + "\n")
