@@ -5,6 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2025-11-15 🎩 LM Studio Integration: 100% Local AI
+
+### Local AI Revolution - Replace External AI with Local LM Studio
+**Complete migration from external APIs to 100% local AI using LM Studio with auto-detection and remote server support**
+
+#### 🎩 CHANGED: AI Assistant → Local LM Studio
+- **100% LOCAL** - No external API calls, works completely offline
+- **LM Studio Integration** - OpenAI-compatible API interface
+  - Auto-detects loaded model from `/v1/models` endpoint
+  - Supports localhost AND remote servers in LAN
+  - Model type detection (DeepHat, Qwen2.5-Coder, generic)
+  - Optimized prompts per model type
+
+- **Remote Server Support** - Second machine in LAN
+  - Configurable IP:PORT via `--ai-server` argument
+  - Default: `http://localhost:1234`
+  - Example: `http://192.168.1.100:1234` (remote DeepHat server)
+  - Full network isolation support
+
+- **Model-Specific Prompts**
+  - **DeepHat**: Security-focused prompts with CWE/MITRE knowledge
+  - **Qwen2.5-Coder**: Code-focused security analysis
+  - **Generic**: Standard vulnerability detection prompts
+
+#### CLI Changes
+- **REMOVED**: `--ai-api-key` (no longer needed)
+- **ADDED**: `--ai-server <url>` - LM Studio server URL
+  - Default: `http://localhost:1234`
+  - Supports remote servers: `http://IP:PORT`
+- **UPDATED**: `--ai-assistant` - Now uses LOCAL LM Studio
+- **UPDATED**: `--ai-always-consent` - Skip prompts for batch processing
+
+#### Updated Examples
+```bash
+# Local LM Studio (localhost)
+python3 security_audit_cli.py --path . --ai-assistant
+
+# Remote LM Studio server in LAN (DeepHat on second machine)
+python3 security_audit_cli.py --path . --ai-assistant --ai-server http://192.168.1.100:1234
+
+# Batch processing with auto-consent
+python3 security_audit_cli.py --path . --ai-assistant --ai-always-consent
+
+# Full stack: ML + Local AI
+python3 security_audit_cli.py --path . --ml-fp-reduction --ai-assistant --ai-always-consent
+```
+
+#### Updated Badges & Version
+- CWE Top 25: 2024 → **2025** (current year)
+- Version: 2.5.0 → **2.5.1**
+- AI Badge: Added "LM Studio (Local)" badge
+- Detection Level: Updated to Checkmarx Enterprise
+
+#### Benefits
+- ✅ **100% Offline** - No internet required
+- ✅ **Privacy** - Code never leaves your network
+- ✅ **Speed** - Local inference (no API latency)
+- ✅ **Cost** - No API costs
+- ✅ **Flexibility** - Use any model (DeepHat, Qwen, Llama, etc.)
+- ✅ **LAN Support** - Leverage powerful machines in network
+
+### Breaking Changes
+- Removed `--ai-api-key` argument (replaced with `--ai-server`)
+- AI Assistant now requires LM Studio server instead of Claude API
+- No backward compatibility with v2.5.0 AI configuration
+
+### Migration Guide
+**From v2.5.0 to v2.5.1:**
+
+Old (v2.5.0 - External API):
+```bash
+python3 security_audit_cli.py --path . --ai-assistant --ai-api-key sk-xxx
+```
+
+New (v2.5.1 - Local LM Studio):
+```bash
+# 1. Start LM Studio and load a model (DeepHat recommended)
+# 2. Enable server in LM Studio (port 1234)
+# 3. Run scanner:
+python3 security_audit_cli.py --path . --ai-assistant
+```
+
+For remote server:
+```bash
+# On second machine: Start LM Studio with DeepHat, enable network access
+# On scanner machine:
+python3 security_audit_cli.py --path . --ai-assistant --ai-server http://192.168.1.100:1234
+```
+
+---
+
 ## [2.5.0] - 2025-11-15 🚀 Checkmarx Killer: ML + AI Assistant
 
 ### Major Upgrade - Intelligence-Augmented Security Analysis
