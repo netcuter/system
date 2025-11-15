@@ -258,6 +258,168 @@ class WebVulnerabilityScanner(BaseScanner):
              'Server-side template injection risk'),
         ]
 
+        # === ADVANCED PATTERNS FROM PROFESSIONAL SAST TOOLS (2025) ===
+
+        # HTTP Request Without Timeout (from Bandit B113)
+        self.timeout_patterns = [
+            (r'requests\.(get|post|put|delete|patch|head|options)\s*\([^)]*?\)(?!.*timeout)',
+             'HTTP request without timeout - can cause indefinite hang'),
+            (r'requests\.(get|post|put|delete|patch|head|options)\s*\([^)]*?timeout\s*=\s*None',
+             'HTTP request with timeout=None - can hang indefinitely'),
+            (r'httpx\.(get|post|put|delete|patch|head|options|request|stream)\s*\([^)]*?\)(?!.*timeout)',
+             'HTTPX request without timeout'),
+            (r'urllib\.request\.urlopen\s*\([^)]*?\)(?!.*timeout)',
+             'URLopen without timeout'),
+        ]
+
+        # Archive Extraction Vulnerabilities (from Bandit B202)
+        self.archive_extraction_patterns = [
+            (r'tarfile\.extractall\s*\(\s*\)(?!.*members|.*filter)',
+             'Tarfile extraction without validation - path traversal risk'),
+            (r'zipfile\.extractall\s*\(\s*\)(?!.*members)',
+             'ZIP extraction without validation - path traversal risk'),
+            (r'tarfile\.extractall\s*\([^)]*?\)(?!.*filter\s*=\s*["\']data["\'])',
+             'Tarfile extraction without safe filter'),
+            (r'shutil\.unpack_archive\s*\([^)]*?\)(?!.*filter)',
+             'Archive unpacking without validation'),
+        ]
+
+        # Jinja2 Template Security (from Bandit B701)
+        self.jinja2_patterns = [
+            (r'jinja2\.Environment\s*\([^)]*?autoescape\s*=\s*False',
+             'Jinja2 autoescape disabled - XSS risk'),
+            (r'jinja2\.Environment\s*\(\s*\)(?!.*autoescape)',
+             'Jinja2 Environment without autoescape (defaults to False)'),
+            (r'from_string\s*\([^)]*?\)(?!.*autoescape)',
+             'Jinja2 template from_string without autoescape'),
+        ]
+
+        # Shell Injection Advanced (from Bandit patterns)
+        self.shell_advanced_patterns = [
+            (r'subprocess\.(Popen|call|run|check_output)\s*\([^)]*?shell\s*=\s*True',
+             'Subprocess with shell=True - command injection risk'),
+            (r'os\.system\s*\([^)]*?(\+|\.format|f["\']|%)',
+             'os.system with formatted string - high risk shell injection'),
+            (r'subprocess\.Popen\s*\(\s*["\'](?!.*[\\/])',
+             'Subprocess with relative path - PATH manipulation risk'),
+        ]
+
+        # TOCTOU Race Conditions (from CVE-2025 patterns)
+        self.race_condition_patterns = [
+            (r'os\.access\s*\([^)]*?\).*?open\s*\(',
+             'TOCTOU race condition - check-then-use pattern'),
+            (r'os\.path\.exists\s*\([^)]*?\).*?open\s*\(',
+             'TOCTOU - file existence check before open'),
+            (r'os\.stat\s*\([^)]*?\).*?open\s*\(',
+             'TOCTOU - stat() before file operation'),
+            (r'Path\([^)]*?\)\.exists\(\).*?open\s*\(',
+             'TOCTOU race condition with pathlib'),
+        ]
+
+        # Unsafe Deserialization Advanced
+        self.deserialization_advanced_patterns = [
+            (r'pickle\.loads?\s*\([^)]*?(request\.|input\(|sys\.stdin)',
+             'Pickle deserialization from untrusted source'),
+            (r'yaml\.(?:load|full_load)\s*\([^)]*?\)(?!.*Loader\s*=\s*yaml\.SafeLoader)',
+             'YAML load without SafeLoader - code execution risk'),
+            (r'marshal\.loads?\s*\(',
+             'Marshal deserialization - code execution risk'),
+            (r'shelve\.open\s*\([^)]*?(request\.|input\()',
+             'Shelve with user-controlled path'),
+        ]
+
+        # Regex DoS (ReDoS) patterns
+        self.redos_patterns = [
+            (r're\.compile\s*\(["\'][^"\']*?(\(.*?\)\+|\(.*?\)\*){2,}',
+             'Potential ReDoS - nested quantifiers in regex'),
+            (r're\.(match|search|findall)\s*\(["\'][^"\']*?(\(.*?\)\+.*?\+|\(.*?\)\*.*?\*)',
+             'ReDoS risk - catastrophic backtracking pattern'),
+        ]
+
+        # Integer Overflow/Underflow
+        self.integer_overflow_patterns = [
+            (r'int\s*\(\s*(request\.|input\()',
+             'Unchecked integer conversion from user input'),
+            (r'range\s*\(\s*int\s*\((request\.|input\()',
+             'Range with user-controlled integer - potential DoS'),
+            (r'\w+\s*\*\s*int\s*\((request\.|input\()',
+             'Multiplication with user-controlled integer'),
+        ]
+
+        # File Upload Vulnerabilities (from Semgrep patterns)
+        self.file_upload_patterns = [
+            (r'request\.(files|FILES)\s*\[.*?\]\.save\s*\(',
+             'File upload without validation'),
+            (r'request\.(files|FILES).*?(?!.*allowed_extensions|.*ALLOWED_EXTENSIONS)',
+             'File upload without extension check'),
+            (r'werkzeug\..*?save\s*\([^)]*?\)(?!.*secure_filename)',
+             'File save without secure_filename()'),
+            (r'request\.FILES.*?\.save\s*\([^)]*?\)(?!.*UploadedFile)',
+             'Django file upload without proper handling'),
+        ]
+
+        # XXE Advanced patterns
+        self.xxe_advanced_patterns = [
+            (r'etree\.XMLParser\s*\([^)]*?\)(?!.*resolve_entities\s*=\s*False)',
+             'XML parser without resolve_entities=False'),
+            (r'xml\.dom\.minidom\.parse\s*\([^)]*?(request\.|input\()',
+             'Minidom parsing user-controlled XML'),
+            (r'xml\.sax\.parse\s*\([^)]*?\)(?!.*setFeature)',
+             'SAX parser without security features'),
+        ]
+
+        # Cryptography Weaknesses (from Bandit)
+        self.crypto_advanced_patterns = [
+            (r'Crypto\.Cipher\.DES\.',
+             'Use of DES encryption - broken algorithm'),
+            (r'Crypto\.Cipher\.ARC[24]\.',
+             'Use of RC2/RC4 - weak stream cipher'),
+            (r'cryptography\.hazmat\.primitives\.ciphers\.modes\.ECB',
+             'ECB mode encryption - pattern leaking'),
+            (r'random\.random\s*\(\s*\).*?(password|token|key|secret)',
+             'Weak random for cryptographic use'),
+            (r'os\.urandom\s*\(\s*[1-9]\s*\)',
+             'Insufficient entropy - less than 16 bytes'),
+        ]
+
+        # SQL Injection Advanced (from Semgrep)
+        self.sql_advanced_patterns = [
+            (r'raw\s*\(["\'].*?%s.*?["\'].*?\%',
+             'Django raw() with % formatting'),
+            (r'RawSQL\s*\(["\'].*?\+',
+             'Django RawSQL with concatenation'),
+            (r'cursor\.execute.*?\.format\s*\(',
+             'SQL with .format() - injection risk'),
+            (r'f["\']SELECT.*?\{[^}]*?\}.*?["\']',
+             'SQL in f-string - injection risk'),
+        ]
+
+        # LDAP Injection
+        self.ldap_injection_patterns = [
+            (r'ldap\.search.*?\([^)]*?(\+|\.format|f["\'])',
+             'LDAP search with user input - injection risk'),
+            (r'ldap_search\s*\([^)]*?(request\.|input\()',
+             'LDAP search with unvalidated input'),
+        ]
+
+        # NoSQL Injection
+        self.nosql_injection_patterns = [
+            (r'db\.collection\.find\s*\(\s*\{[^}]*?(request\.|params|req\.)',
+             'MongoDB query with user input - injection risk'),
+            (r'\.where\s*\(["\'].*?(\+|\$\{)',
+             'NoSQL where clause with string concatenation'),
+        ]
+
+        # Prototype Pollution (JavaScript)
+        self.prototype_pollution_patterns = [
+            (r'Object\.assign\s*\(\s*\{\s*\}\s*,\s*(req\.|request\.|params)',
+             'Prototype pollution via Object.assign'),
+            (r'\.\.\.req\.(body|query|params)',
+             'Spread operator with user input - pollution risk'),
+            (r'__proto__\s*=',
+             'Direct __proto__ assignment'),
+        ]
+
     def scan(self, file_path: str, content: str, file_type: str) -> List[Finding]:
         """Scan file for web vulnerabilities"""
         findings = []
@@ -432,6 +594,128 @@ class WebVulnerabilityScanner(BaseScanner):
                 "Server-Side Template Injection (SSTI)", Severity.CRITICAL,
                 "Never pass user input to template engines. Use sandboxed templates.",
                 "CWE-94", "A03:2021 - Injection"
+            ))
+
+        # === ADVANCED CHECKS FROM PROFESSIONAL SAST TOOLS (2025) ===
+
+        if checks.get("timeout_check", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.timeout_patterns,
+                "HTTP Request Without Timeout", Severity.MEDIUM,
+                "Always specify timeout parameter to prevent indefinite hangs. Use timeout=30 or similar.",
+                "CWE-400", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("archive_extraction", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.archive_extraction_patterns,
+                "Unsafe Archive Extraction", Severity.HIGH,
+                "Validate archive members before extraction. Use filter='data' for tarfile or validate paths.",
+                "CWE-22", "A01:2021 - Broken Access Control"
+            ))
+
+        if checks.get("jinja2_security", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.jinja2_patterns,
+                "Jinja2 XSS Risk", Severity.HIGH,
+                "Always use autoescape=True or select_autoescape() in Jinja2 Environment.",
+                "CWE-79", "A03:2021 - Injection"
+            ))
+
+        if checks.get("shell_advanced", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.shell_advanced_patterns,
+                "Advanced Shell Injection", Severity.CRITICAL,
+                "Avoid shell=True. Use subprocess with list arguments and absolute paths.",
+                "CWE-78", "A03:2021 - Injection"
+            ))
+
+        if checks.get("race_conditions", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.race_condition_patterns,
+                "TOCTOU Race Condition", Severity.HIGH,
+                "Use atomic file operations. Open files directly without prior existence checks.",
+                "CWE-362", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("deserialization_advanced", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.deserialization_advanced_patterns,
+                "Advanced Deserialization Risk", Severity.CRITICAL,
+                "Never deserialize untrusted data. Use JSON or safe alternatives to pickle/yaml.load.",
+                "CWE-502", "A08:2021 - Software and Data Integrity Failures"
+            ))
+
+        if checks.get("redos", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.redos_patterns,
+                "Regex DoS (ReDoS)", Severity.MEDIUM,
+                "Avoid nested quantifiers in regex. Test regex performance with long inputs.",
+                "CWE-1333", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("integer_overflow", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.integer_overflow_patterns,
+                "Integer Overflow Risk", Severity.MEDIUM,
+                "Validate and bound integer inputs. Check ranges before arithmetic operations.",
+                "CWE-190", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("file_upload", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.file_upload_patterns,
+                "Insecure File Upload", Severity.HIGH,
+                "Validate file extensions, use secure_filename(), scan for malware, store outside webroot.",
+                "CWE-434", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("xxe_advanced", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.xxe_advanced_patterns,
+                "XML External Entity (XXE) Advanced", Severity.HIGH,
+                "Disable external entity resolution: resolve_entities=False, disable DTD processing.",
+                "CWE-611", "A05:2021 - Security Misconfiguration"
+            ))
+
+        if checks.get("crypto_advanced", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.crypto_advanced_patterns,
+                "Advanced Cryptography Weakness", Severity.HIGH,
+                "Use AES-256, avoid ECB mode, use secrets module for random, minimum 16 bytes entropy.",
+                "CWE-327", "A02:2021 - Cryptographic Failures"
+            ))
+
+        if checks.get("sql_advanced", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.sql_advanced_patterns,
+                "Advanced SQL Injection", Severity.CRITICAL,
+                "Use parameterized queries. Avoid .format(), %, and f-strings in SQL.",
+                "CWE-89", "A03:2021 - Injection"
+            ))
+
+        if checks.get("ldap_injection", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.ldap_injection_patterns,
+                "LDAP Injection", Severity.HIGH,
+                "Sanitize and escape LDAP filter inputs. Use parameterized queries.",
+                "CWE-90", "A03:2021 - Injection"
+            ))
+
+        if checks.get("nosql_injection", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.nosql_injection_patterns,
+                "NoSQL Injection", Severity.HIGH,
+                "Validate and sanitize inputs. Use query builders, not string concatenation.",
+                "CWE-943", "A03:2021 - Injection"
+            ))
+
+        if checks.get("prototype_pollution", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.prototype_pollution_patterns,
+                "Prototype Pollution", Severity.HIGH,
+                "Validate object keys. Avoid Object.assign/spread with user input. Use Object.create(null).",
+                "CWE-1321", "A04:2021 - Insecure Design"
             ))
 
         return findings
