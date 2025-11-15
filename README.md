@@ -1,9 +1,11 @@
 # System Audytu Bezpieczeństwa Kodu Aplikacji Webowych
 
-Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami.
+Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami. **Wspiera OWASP ASVS 4.0 i wiele języków programowania.**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.7+-green.svg)
+![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
+![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🚀 Funkcje
@@ -41,6 +43,37 @@ Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego a
 - **JSON** - strukturyzowany format dla automatyzacji
 - **HTML** - wizualny raport z podświetleniem kodu
 - **SARIF** - standard dla integracji z GitHub, GitLab, Azure DevOps
+- **ASVS JSON/HTML** - raporty zgodności z OWASP ASVS 4.0
+
+### 🌍 Wsparcie Wielu Języków i Frameworków
+- **Python** (Django, Flask)
+- **JavaScript/TypeScript** (Node.js, Express, React, Vue, Angular)
+- **PHP** (Laravel, Symfony)
+- **Java** (Spring, Jakarta EE)
+- **Ruby** (Ruby on Rails)
+- **Go** (Gin, Echo)
+- **C#** (ASP.NET, .NET Core)
+- **Rust** (Actix, Rocket)
+- **Kotlin** (Spring Boot)
+- **Scala** (Play Framework)
+- **Elixir** (Phoenix)
+
+### 📋 OWASP ASVS 4.0 Compliance
+System implementuje weryfikację zgodności z **Application Security Verification Standard (ASVS) 4.0**:
+- **Level 1** - Opportunistic (podstawowa weryfikacja)
+- **Level 2** - Standard (standardowa weryfikacja dla większości aplikacji)
+- **Level 3** - Advanced (zaawansowana weryfikacja dla krytycznych aplikacji)
+
+Pokrywa wszystkie kategorie ASVS:
+- V2: Authentication
+- V3: Session Management
+- V4: Access Control
+- V5: Validation, Sanitization and Encoding
+- V6: Stored Cryptography
+- V7: Error Handling and Logging
+- V8: Data Protection
+- V9: Communication
+- V10-V14: i więcej...
 
 ## 📦 Instalacja
 
@@ -56,14 +89,17 @@ pip install -r requirements.txt
 ## 🎯 Szybki Start
 
 ```bash
-# Skanowanie bieżącego katalogu
+# Skanowanie bieżącego katalogu (wszystkie skanery)
 python3 security_audit_cli.py --path .
 
 # Skanowanie z raportem HTML
 python3 security_audit_cli.py --path . --output html --report report.html
 
+# Raport zgodności ASVS Level 2
+python3 security_audit_cli.py --path . --output asvs-html --asvs-level 2
+
 # Skanowanie tylko określonych typów
-python3 security_audit_cli.py --path . --scanners web,secrets
+python3 security_audit_cli.py --path . --scanners web,secrets,asvs,multilang
 
 # Skanowanie z fail na critical issues (CI/CD)
 python3 security_audit_cli.py --path . --fail-on critical
@@ -146,18 +182,21 @@ security_audit:
       sast: security.sarif
 ```
 
-## 🎨 Wspierane Języki
+## 🎨 Wspierane Języki i Rozszerzenia
 
-- Python (.py)
-- JavaScript/TypeScript (.js, .ts, .jsx, .tsx)
-- PHP (.php)
-- Java (.java)
-- Ruby (.rb)
-- Go (.go)
-- C# (.cs)
-- HTML (.html, .htm)
-- XML (.xml)
-- YAML/JSON (.yml, .yaml, .json)
+- **Python** (.py) - Django, Flask, FastAPI
+- **JavaScript/TypeScript** (.js, .ts, .jsx, .tsx) - Node.js, React, Vue, Angular
+- **PHP** (.php) - Laravel, Symfony
+- **Java** (.java) - Spring, Jakarta EE
+- **Ruby** (.rb) - Ruby on Rails
+- **Go** (.go) - Gin, Echo, Fiber
+- **C#** (.cs) - ASP.NET, .NET Core
+- **Rust** (.rs) - Actix, Rocket
+- **Kotlin** (.kt) - Spring Boot, Ktor
+- **Scala** (.scala) - Play Framework, Akka
+- **Elixir** (.ex, .exs) - Phoenix
+- **HTML/XML** (.html, .htm, .xml)
+- **Config Files** (.yml, .yaml, .json, .env)
 
 ## 📊 Formaty Raportów
 

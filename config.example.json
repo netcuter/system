@@ -37,7 +37,12 @@
       ".yml",
       ".yaml",
       ".env",
-      ".config"
+      ".config",
+      ".rs",
+      ".kt",
+      ".scala",
+      ".ex",
+      ".exs"
     ]
   },
   "scanners": {
@@ -74,6 +79,15 @@
       "check_outdated": true
     },
     "config_analyzer": {
+      "enabled": true,
+      "severity_threshold": "INFO"
+    },
+    "asvs_scanner": {
+      "enabled": true,
+      "asvs_level": 1,
+      "severity_threshold": "INFO"
+    },
+    "multilanguage_scanner": {
       "enabled": true,
       "severity_threshold": "INFO"
     }
