@@ -327,7 +327,7 @@ MIT License - zobacz [LICENSE](LICENSE) dla szczegółów.
 
 ## 👤 Autor
 
-Security Audit Team
+netcuter
 
 ## 🙏 Podziękowania
 
