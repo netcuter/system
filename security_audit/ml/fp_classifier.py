@@ -219,12 +219,19 @@ class FalsePositiveClassifier:
         return real_vulns, false_positives
 
     def _is_test_file(self, file_path: str) -> bool:
-        """Check if file is a test file"""
+        """Check if file is a test file (unit tests, NOT vulnerable apps in test_projects!)"""
+        file_path_lower = file_path.lower()
+
+        # EXCLUDE: test_projects/ directory (these are vulnerable apps for testing scanner, not test files!)
+        if 'test_projects/' in file_path_lower or 'test-projects/' in file_path_lower:
+            return False
+
+        # INCLUDE: actual test files (unit tests, spec files)
         test_indicators = [
             '/test/', '/tests/', '_test.', 'test_',
             '/spec/', '__tests__/', '.spec.', '.test.'
         ]
-        return any(indicator in file_path.lower() for indicator in test_indicators)
+        return any(indicator in file_path_lower for indicator in test_indicators)
 
     def _is_documentation(self, file_path: str, code: str) -> bool:
         """Check if it's documentation or example"""
