@@ -20,13 +20,50 @@ class ValidationDatasetBuilder:
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or Path(__file__).parent.parent.parent
-        self.test_results_files = [
-            'test_results_dvwa_php.json',
-            'test_results_flask.json',
-            'test_results_pygoat.json',
-            'test_results_vulnpy.json',
-            'test_results_dvpwa.json',
+
+        # 50% apps for TRAINING (1-2 apps PER LANGUAGE)
+        self.training_apps = [
+            # PHP (2 apps)
+            'test_results_dvwa_php.json',      # PHP - DVWA (643 findings)
+            'test_results_bwapp.json',         # PHP - bWAPP (2,527 findings)
+
+            # Python (2 apps)
+            'test_results_pygoat.json',        # Python - Django (456 findings)
+            'test_results_flask.json',         # Python - Flask (94 findings)
+
+            # Node.js (2 apps)
+            'test_results_juiceshop.json',     # Node.js - Juice Shop (6,266 findings)
+            'test_results_nodegoat.json',      # Node.js - NodeGoat (278 findings)
+
+            # Java (2 apps)
+            'test_results_webgoat.json',       # Java - WebGoat (1,601 findings)
+            'test_results_javaseccode.json',   # Java - Java Sec Code (328 findings)
+
+            # .NET (1 app - only have 2 total)
+            'test_results_aspnet.json',        # C#/.NET - ASP.NET Lab (120 findings)
         ]
+
+        # 50% apps for TESTING (at least 1 app PER LANGUAGE)
+        self.testing_apps = [
+            # PHP (1 app)
+            'test_results_mutillidae.json',    # PHP - Mutillidae II (1,253 findings)
+
+            # Python (2 apps)
+            'test_results_vulnpy.json',        # Python - Vulnpy (222 findings)
+            'test_results_dvpwa.json',         # Python - DVPWA (150 findings)
+
+            # Node.js (1 app)
+            'test_results_dvna.json',          # Node.js - DVNA (55 findings)
+
+            # Java (1 app)
+            'test_results_vulnerableapp.json', # Java - VulnerableApp (394 findings)
+
+            # .NET (1 app)
+            'test_results_webgoatnet.json',    # C#/.NET - WebGoat.NET (771 findings)
+        ]
+
+        # Default: use training apps
+        self.test_results_files = self.training_apps
 
     def load_findings_from_tests(self) -> List[Dict[str, Any]]:
         """

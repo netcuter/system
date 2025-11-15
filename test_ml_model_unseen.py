@@ -139,11 +139,23 @@ def test_on_unseen_data(model_path: str, test_results_files: list):
 
 
 if __name__ == '__main__':
-    # Test on UNSEEN applications
+    # Test on UNSEEN applications (50% split per language - testing apps)
     unseen_apps = [
-        'test_results_juiceshop.json',    # OWASP Juice Shop (Node.js) - NOT in training!
-        'test_results_webgoat.json',      # OWASP WebGoat (Java) - NOT in training!
-        'test_results_aspnet.json',       # ASP.NET Vulnerable Lab - NOT in training!
+        # PHP (1 app)
+        'test_results_mutillidae.json',    # Mutillidae II (PHP) - NOT in training!
+
+        # Python (2 apps)
+        'test_results_vulnpy.json',        # Vulnpy (Python) - NOT in training!
+        'test_results_dvpwa.json',         # DVPWA (Python) - NOT in training!
+
+        # Node.js (1 app)
+        'test_results_dvna.json',          # DVNA (Node.js) - NOT in training!
+
+        # Java (1 app)
+        'test_results_vulnerableapp.json', # VulnerableApp (Java) - NOT in training!
+
+        # .NET (1 app)
+        'test_results_webgoatnet.json',    # WebGoat.NET (C#/.NET) - NOT in training!
     ]
 
     results = test_on_unseen_data('trained_models/fp_classifier_rf.pkl', unseen_apps)
