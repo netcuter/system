@@ -4,13 +4,13 @@
 
 Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami. **Wspiera OWASP ASVS 4.0 i wiele języków programowania.**
 
-![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.5.1-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
-![SonarQube Level](https://img.shields.io/badge/SonarQube-Professional-orange.svg)
-![Detection](https://img.shields.io/badge/detection-35--40%20vulns%2F1K%20LOC-green.svg)
-![Data Flow](https://img.shields.io/badge/analysis-Data%20Flow%20%2B%20Call%20Graph-red.svg)
-![CWE 2024](https://img.shields.io/badge/CWE%20Top%2025-2024-red.svg)
+![Checkmarx Level](https://img.shields.io/badge/Checkmarx-Enterprise-orange.svg)
+![Detection](https://img.shields.io/badge/detection-42--48%20vulns%2F1K%20LOC-green.svg)
+![AI](https://img.shields.io/badge/AI-LM%20Studio%20%28Local%29-purple.svg)
+![CWE 2025](https://img.shields.io/badge/CWE%20Top%2025-2025-red.svg)
 ![SAST](https://img.shields.io/badge/SAST-Bandit%20%7C%20Semgrep%20%7C%20CodeQL-green.svg)
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -53,7 +53,7 @@ Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego a
 - **Weak Cryptography** (CWE-327) - identyfikuje słabe algorytmy kryptograficzne
 - **Hardcoded Credentials** (CWE-798) - wykrywa hardcoded hasła i klucze
 
-**🆕 CWE Top 25 2024 - Nowe Wzorce:**
+**🆕 CWE Top 25 2025 - Nowe Wzorce:**
 - **Code Injection** (CWE-94) - wykrywa eval(), exec() z user input
 - **Clickjacking** (CWE-1021) - brak nagłówków X-Frame-Options
 - **Improper Authorization / IDOR** (CWE-863) - nieprawidłowa autoryzacja dostępu
