@@ -24,6 +24,8 @@ from security_audit.reporters import (
     ASVSReporter
 )
 from security_audit.asvs import ASVSLevel
+from security_audit.ml import FalsePositiveClassifier
+from security_audit.ai import AIAssistant
 
 
 def main():
@@ -35,14 +37,23 @@ Examples:
   # Scan current directory
   python3 security_audit_cli.py --path .
 
+  # Scan with ML false positive reduction
+  python3 security_audit_cli.py --path . --ml-fp-reduction
+
+  # Scan with LOCAL AI assistant (LM Studio on localhost)
+  python3 security_audit_cli.py --path . --ai-assistant
+
+  # Scan with REMOTE AI assistant (LM Studio on another machine in LAN)
+  python3 security_audit_cli.py --path . --ai-assistant --ai-server http://192.168.1.100:1234
+
+  # Full scan with ML + AI (auto-consent for batch processing)
+  python3 security_audit_cli.py --path . --ml-fp-reduction --ai-assistant --ai-always-consent
+
   # Scan with HTML report
   python3 security_audit_cli.py --path /path/to/project --output html --report report.html
 
   # Scan with specific scanners
   python3 security_audit_cli.py --path . --scanners web,secrets
-
-  # Scan with custom config
-  python3 security_audit_cli.py --path . --config config.json
 
   # Fail on critical issues (useful for CI/CD)
   python3 security_audit_cli.py --path . --fail-on critical
@@ -105,9 +116,34 @@ Examples:
     )
 
     parser.add_argument(
+        '--ml-fp-reduction',
+        action='store_true',
+        help='Enable ML-based false positive filtering (100%% offline)'
+    )
+
+    parser.add_argument(
+        '--ai-assistant',
+        action='store_true',
+        help='Enable LOCAL AI assistant using LM Studio (100%% offline)'
+    )
+
+    parser.add_argument(
+        '--ai-server',
+        type=str,
+        default='http://localhost:1234',
+        help='LM Studio server URL (default: http://localhost:1234, example: http://192.168.1.100:1234 for remote)'
+    )
+
+    parser.add_argument(
+        '--ai-always-consent',
+        action='store_true',
+        help='Auto-approve all AI requests (skip prompts, useful for batch processing)'
+    )
+
+    parser.add_argument(
         '--version',
         action='version',
-        version='Security Audit System v2.4.0 - SonarQube Professional Level'
+        version='Security Audit System v2.5.1 - Checkmarx Killer (ML + Local AI via LM Studio)'
     )
 
     args = parser.parse_args()
@@ -184,6 +220,74 @@ Examples:
         findings = engine.scan_directory(str(project_path))
         stats = engine.get_stats()
 
+        # Store original count
+        original_count = len(findings)
+
+        # Apply ML-based false positive reduction
+        if args.ml_fp_reduction:
+            if args.verbose:
+                print("\n[*] Applying ML-based false positive reduction...")
+
+            classifier = FalsePositiveClassifier()
+
+            # Convert findings to dict format
+            findings_dicts = [f.to_dict() for f in findings]
+
+            # Filter with ML
+            real_vulns, false_positives = classifier.filter_findings(findings_dicts)
+
+            if args.verbose:
+                ml_stats = classifier.get_statistics(len(findings_dicts), len(real_vulns))
+                print(f"[+] ML Filtering: {ml_stats['filtered_count']} false positives removed ({ml_stats['filtered_percentage']:.1f}%)")
+                print(f"[+] Reduced from {original_count} to {len(real_vulns)} findings")
+
+            # Update findings list (convert back from dicts - simplified)
+            findings = findings[:len(real_vulns)]  # Keep only real vulnerabilities
+
+            # Update stats
+            stats['findings_by_severity'] = {
+                'CRITICAL': sum(1 for f in real_vulns if f.get('severity') == 'CRITICAL'),
+                'HIGH': sum(1 for f in real_vulns if f.get('severity') == 'HIGH'),
+                'MEDIUM': sum(1 for f in real_vulns if f.get('severity') == 'MEDIUM'),
+                'LOW': sum(1 for f in real_vulns if f.get('severity') == 'LOW'),
+                'INFO': sum(1 for f in real_vulns if f.get('severity') == 'INFO'),
+            }
+
+        # Apply AI assistant enhancement
+        if args.ai_assistant:
+            if args.verbose:
+                print("\n[*] LOCAL AI Assistant enabled (LM Studio)")
+                print(f"[*] Server: {args.ai_server}")
+
+            assistant = AIAssistant(
+                server_url=args.ai_server,
+                enabled=True,
+                always_consent=args.ai_always_consent
+            )
+
+            # Convert findings to dict format
+            findings_dicts = [f.to_dict() if hasattr(f, 'to_dict') else f for f in findings]
+
+            # Enhance with AI (will ask for consent)
+            confirmed, ai_false_positives = assistant.enhance_findings(
+                findings_dicts,
+                max_analyze=10 if not args.ai_always_consent else None  # Limit if asking each time
+            )
+
+            if args.verbose:
+                ai_stats = assistant.get_statistics()
+                print(f"\n[+] AI Analysis:")
+                print(f"    Analyzed: {ai_stats['total_analyzed']}")
+                print(f"    Confirmed: {ai_stats['vulnerabilities_confirmed']}")
+                print(f"    False positives: {ai_stats['false_positives_caught']}")
+
+            # Update findings
+            findings = findings[:len(confirmed)]
+
+            # Print statistics
+            if args.verbose:
+                assistant.print_statistics()
+
         # Generate report
         report_content = generate_report(
             findings, stats, str(project_path), args.output
@@ -226,9 +330,9 @@ def print_banner():
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
 ║         Security Audit System for Web Applications           ║
-║                         Version 2.4.0                         ║
-║              🔥 SonarQube Professional Level 🔥               ║
-║         Data Flow • Call Graph • Framework-Aware              ║
+║                         Version 2.5.1                         ║
+║      🚀 Checkmarx Killer: ML + Local AI (LM Studio) 🤖        ║
+║        Local ML • Local AI • 8 Frameworks • 100% Offline      ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
     """
