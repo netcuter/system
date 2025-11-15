@@ -37,27 +37,85 @@ class WebVulnerabilityScanner(BaseScanner):
              'Unsafe SQL execution in Python'),
             (r'db\.(query|exec|raw)\s*\(["\'].*?(\+|\$\{)',
              'Unsafe SQL query construction'),
+            # Django ORM
+            (r'\.raw\s*\(\s*["\'].*?(\+|\.format|%)',
+             'Django raw SQL with string formatting'),
+            (r'\.extra\s*\(\s*where\s*=\s*\[["\'].*?(\+|\.format)',
+             'Django .extra() with unsafe where clause'),
+            # SQLAlchemy
+            (r'session\.execute\s*\(\s*["\'].*?(\+|\.format|%)',
+             'SQLAlchemy execute with string formatting'),
+            (r'text\s*\(\s*f["\']',
+             'SQLAlchemy text() with f-string'),
+            # PHP/MySQL
+            (r'mysql_(query|real_query)\s*\([^)]*?\$_(GET|POST|REQUEST)',
+             'MySQL query with user input'),
+            (r'mysqli.*?query\s*\([^)]*?(\$_(GET|POST|REQUEST)|\$_)',
+             'MySQLi query with user input'),
+            (r'\$wpdb->query\s*\([^)]*?(\$_(GET|POST)|\.)',
+             'WordPress SQL query with concatenation'),
+            # Node.js/JavaScript
+            (r'(query|execute)\s*\(\s*[`"\'][^`"\']*?\$\{',
+             'SQL query with template literal interpolation'),
+            (r'sequelize\.query\s*\([^)]*?[\+\$]',
+             'Sequelize raw query with string concat'),
+            # Java/JDBC
+            (r'Statement.*?execute(Query|Update)\s*\([^)]*?\+',
+             'JDBC Statement with string concatenation'),
+            (r'createQuery\s*\([^)]*?\+',
+             'JPA createQuery with string concatenation'),
         ]
 
         # XSS patterns
         self.xss_patterns = [
-            # Unsafe HTML rendering
+            # JavaScript DOM manipulation
             (r'innerHTML\s*=\s*(?!["\']\s*["\']\s*$)',
-             'Potentially unsafe innerHTML assignment'),
+             'Potentially unsafe innerHTML assignment - XSS risk'),
+            (r'outerHTML\s*=',
+             'Potentially unsafe outerHTML assignment - XSS risk'),
             (r'document\.write\s*\(',
-             'Use of document.write (XSS risk)'),
+             'Use of document.write - XSS risk'),
+            (r'document\.writeln\s*\(',
+             'Use of document.writeln - XSS risk'),
+            (r'\.insertAdjacentHTML\s*\(',
+             'insertAdjacentHTML - verify input sanitization'),
+            # React
             (r'dangerouslySetInnerHTML\s*=\s*\{\{',
-             'Use of dangerouslySetInnerHTML in React'),
+             'Use of dangerouslySetInnerHTML in React - XSS risk'),
+            # Vue.js
             (r'v-html\s*=',
-             'Use of v-html in Vue.js (XSS risk)'),
+             'Use of v-html in Vue.js - XSS risk'),
+            # Angular
+            (r'\[innerHTML\]\s*=',
+             'Angular innerHTML binding - XSS risk'),
+            (r'bypassSecurityTrust(Html|Script|Style|Url)',
+             'Angular security bypass - XSS risk'),
+            # Template engines
             (r'\{\{\{.*?\}\}\}',
              'Unescaped template output (Handlebars/Mustache)'),
-            (r'<%=\s*[^-]',
+            (r'<%=\s*(?!.*?h\()',
              'Unescaped output in ERB/EJS templates'),
+            (r'\{\{\s*(?!.*?\|\s*escape)',
+             'Potentially unescaped Jinja2/Django template'),
+            # PHP
             (r'echo\s+\$_(GET|POST|REQUEST|COOKIE)',
-             'Direct output of user input in PHP'),
+             'Direct output of user input in PHP - XSS'),
+            (r'print\s+\$_(GET|POST|REQUEST|COOKIE)',
+             'Direct print of user input in PHP - XSS'),
+            (r'<\?=\s*\$_(GET|POST|REQUEST|COOKIE)',
+             'PHP short echo with user input - XSS'),
+            # Python
             (r'print\s*\(\s*request\.(GET|POST|args|form|cookies)',
              'Direct output of user input in Python'),
+            (r'HttpResponse\s*\([^)]*?request\.(GET|POST)',
+             'Django HttpResponse with user input - XSS risk'),
+            (r'render_template_string\s*\([^)]*?request\.',
+             'Flask render_template_string with user input - SSTI/XSS'),
+            # Java/JSP
+            (r'<%=\s*request\.getParameter',
+             'JSP output of request parameter - XSS'),
+            (r'out\.println\s*\([^)]*?request\.getParameter',
+             'Java servlet output with request param - XSS'),
         ]
 
         # Command Injection patterns
@@ -96,14 +154,36 @@ class WebVulnerabilityScanner(BaseScanner):
 
         # XXE patterns
         self.xxe_patterns = [
+            # Java patterns
             (r'DocumentBuilder.*?setFeature.*?false',
              'XML parser without XXE protection'),
             (r'XMLReader.*?setFeature.*?false',
              'XML reader without XXE protection'),
             (r'SAXParser.*?(?!setFeature)',
              'SAX parser without explicit XXE protection'),
+            # Python lxml patterns
             (r'etree\.XMLParser\s*\([^)]*?(resolve_entities\s*=\s*True|load_dtd\s*=\s*True)',
-             'XML parser with dangerous settings'),
+             'XML parser with dangerous settings - XXE risk'),
+            (r'etree\.parse\s*\([^)]*?\)(?!.*XMLParser)',
+             'lxml parse without explicit parser - XXE risk'),
+            (r'etree\.fromstring\s*\([^)]*?\)(?!.*XMLParser)',
+             'lxml fromstring without parser - XXE risk'),
+            # Python xml.etree
+            (r'xml\.etree\.ElementTree\.(parse|fromstring|XML)\s*\(',
+             'Unsafe XML parsing with xml.etree - XXE risk'),
+            # Python defusedxml check
+            (r'from xml\.|import xml\.(?!.*defusedxml)',
+             'Using xml module instead of defusedxml - XXE risk'),
+            # PHP patterns
+            (r'simplexml_load_(string|file)\s*\([^)]*?\)(?!.*LIBXML_NOENT.*false)',
+             'PHP simplexml without XXE protection'),
+            (r'new DOMDocument\s*\(\s*\)(?!.*loadXML.*LIBXML_NOENT)',
+             'PHP DOMDocument without XXE protection'),
+            # Node.js patterns
+            (r'new\s+DOMParser\s*\(\s*\)\.parseFromString',
+             'DOMParser in Node.js - potential XXE'),
+            (r'libxmljs\.parseXml\s*\([^)]*?\)(?!.*noent.*false)',
+             'Node.js libxmljs without XXE protection'),
         ]
 
         # CSRF patterns
@@ -274,14 +354,36 @@ class WebVulnerabilityScanner(BaseScanner):
 
         # Archive Extraction Vulnerabilities (from Bandit B202)
         self.archive_extraction_patterns = [
-            (r'tarfile\.extractall\s*\(\s*\)(?!.*members|.*filter)',
+            # Python tarfile
+            (r'tarfile\.extractall\s*\(\s*\)',
              'Tarfile extraction without validation - path traversal risk'),
-            (r'zipfile\.extractall\s*\(\s*\)(?!.*members)',
-             'ZIP extraction without validation - path traversal risk'),
-            (r'tarfile\.extractall\s*\([^)]*?\)(?!.*filter\s*=\s*["\']data["\'])',
-             'Tarfile extraction without safe filter'),
-            (r'shutil\.unpack_archive\s*\([^)]*?\)(?!.*filter)',
-             'Archive unpacking without validation'),
+            (r'tarfile\.extractall\s*\([^)]*?\)',
+             'Tarfile extraction - verify path traversal protection'),
+            (r'tarfile\.extract\s*\([^)]*?\)(?!.*safe|.*filter)',
+             'Tarfile extract without validation'),
+            # Python zipfile
+            (r'zipfile\.extractall\s*\(',
+             'ZIP extraction - verify path traversal protection'),
+            (r'zipfile\.ZipFile.*?\.extract\s*\([^)]*?\)(?!.*safe)',
+             'ZIP extract without path validation'),
+            # Python shutil
+            (r'shutil\.unpack_archive\s*\(',
+             'Archive unpacking - check for path traversal'),
+            # Java
+            (r'ZipEntry.*?getName\(\)(?!.*\.contains\(["\']\.\.["\']\)|.*startsWith)',
+             'Java ZIP entry without path validation'),
+            (r'ZipInputStream.*?getNextEntry\(\)(?!.*sanitize|.*validate)',
+             'Java ZIP extraction without validation'),
+            # Node.js
+            (r'(extract-zip|unzipper|tar).*?extract\(',
+             'Node.js archive extraction - verify validation'),
+            (r'fs\.createWriteStream.*?entry\.fileName',
+             'Direct file write from archive entry'),
+            # PHP
+            (r'ZipArchive.*?extractTo\(',
+             'PHP ZIP extraction - check path traversal'),
+            (r'PharData.*?extractTo\(',
+             'PHP Phar extraction - verify validation'),
         ]
 
         # Jinja2 Template Security (from Bandit B701)
@@ -306,14 +408,36 @@ class WebVulnerabilityScanner(BaseScanner):
 
         # TOCTOU Race Conditions (from CVE-2025 patterns)
         self.race_condition_patterns = [
-            (r'os\.access\s*\([^)]*?\).*?open\s*\(',
-             'TOCTOU race condition - check-then-use pattern'),
-            (r'os\.path\.exists\s*\([^)]*?\).*?open\s*\(',
-             'TOCTOU - file existence check before open'),
-            (r'os\.stat\s*\([^)]*?\).*?open\s*\(',
-             'TOCTOU - stat() before file operation'),
-            (r'Path\([^)]*?\)\.exists\(\).*?open\s*\(',
-             'TOCTOU race condition with pathlib'),
+            # Python patterns
+            (r'os\.access\s*\([^)]*?\)',
+             'TOCTOU risk - os.access() check (use open() instead)'),
+            (r'os\.path\.exists\s*\([^)]*?\)',
+             'TOCTOU risk - exists() check before operation'),
+            (r'os\.path\.isfile\s*\([^)]*?\)',
+             'TOCTOU risk - isfile() check before operation'),
+            (r'os\.path\.isdir\s*\([^)]*?\)',
+             'TOCTOU risk - isdir() check before operation'),
+            (r'os\.stat\s*\([^)]*?\)',
+             'TOCTOU risk - stat() check before operation'),
+            (r'Path\([^)]*?\)\.(exists|is_file|is_dir)\(\)',
+             'TOCTOU risk with pathlib check'),
+            # PHP patterns
+            (r'file_exists\s*\([^)]*?\)',
+             'TOCTOU risk - PHP file_exists() before operation'),
+            (r'is_file\s*\([^)]*?\)',
+             'TOCTOU risk - PHP is_file() check'),
+            (r'is_readable\s*\([^)]*?\)',
+             'TOCTOU risk - PHP is_readable() check'),
+            # Java patterns
+            (r'\.exists\(\).*?new FileInputStream',
+             'TOCTOU risk - Java exists() before FileInputStream'),
+            (r'Files\.exists\s*\([^)]*?\)',
+             'TOCTOU risk - Java Files.exists() check'),
+            # Node.js patterns
+            (r'fs\.existsSync\s*\([^)]*?\)',
+             'TOCTOU risk - Node.js existsSync() check'),
+            (r'fs\.statSync\s*\([^)]*?\)',
+             'TOCTOU risk - Node.js statSync() check'),
         ]
 
         # Unsafe Deserialization Advanced
@@ -330,10 +454,28 @@ class WebVulnerabilityScanner(BaseScanner):
 
         # Regex DoS (ReDoS) patterns
         self.redos_patterns = [
+            # Nested quantifiers (e.g., (a+)+, (a*)*)
             (r're\.compile\s*\(["\'][^"\']*?(\(.*?\)\+|\(.*?\)\*){2,}',
              'Potential ReDoS - nested quantifiers in regex'),
             (r're\.(match|search|findall)\s*\(["\'][^"\']*?(\(.*?\)\+.*?\+|\(.*?\)\*.*?\*)',
              'ReDoS risk - catastrophic backtracking pattern'),
+            # Alternation with overlapping patterns (e.g., (a|a)*,  (a|ab)*)
+            (r're\.(compile|match|search|findall)\s*\(["\'][^"\']*?\([^)]*?\|[^)]*?\)[\*\+]',
+             'Potential ReDoS - alternation with quantifier'),
+            # Repetition followed by same character (e.g., a+a, a*a)
+            (r're\.(compile|match|search|findall)\s*\(["\'][^"\']*?([a-z])[\*\+][\'"]?\1',
+             'ReDoS risk - repetition followed by same character'),
+            # JavaScript regex patterns
+            (r'new RegExp\s*\(["\'][^"\']*?(\(.*?\)[\*\+]){2,}',
+             'JavaScript ReDoS - nested quantifiers'),
+            (r'/[^/]*?(\(.*?\)[\*\+]){2,}[^/]*?/[gmi]*',
+             'JavaScript regex literal with ReDoS pattern'),
+            # PHP preg patterns
+            (r'preg_(match|match_all|replace)\s*\(["\'][^"\']*?(\(.*?\)[\*\+]){2,}',
+             'PHP ReDoS - nested quantifiers in regex'),
+            # Dangerous patterns: (.*)*,  (.+)+,  (a+)+,  (a|a?)+
+            (r'[\(\[]\.[\*\+][\)\]][\*\+]',
+             'Critical ReDoS - nested .* or .+'),
         ]
 
         # Integer Overflow/Underflow
@@ -418,6 +560,72 @@ class WebVulnerabilityScanner(BaseScanner):
              'Spread operator with user input - pollution risk'),
             (r'__proto__\s*=',
              'Direct __proto__ assignment'),
+        ]
+
+        # Server-Side Template Injection (SSTI)
+        self.ssti_patterns = [
+            # Python
+            (r'render_template_string\s*\([^)]*?(request\.|input\(|\+|\.format)',
+             'SSTI in Flask render_template_string'),
+            (r'Template\s*\([^)]*?(request\.|input\(|\+)',
+             'SSTI risk in Jinja2 Template()'),
+            (r'from_string\s*\([^)]*?(request\.|input\()',
+             'SSTI in Jinja2 from_string()'),
+            # Node.js
+            (r'(pug|jade|ejs|handlebars)\.compile\s*\([^)]*?(req\.|params)',
+             'SSTI in Node.js template compilation'),
+            (r'eval\s*\([^)]*?(`.*?\$\{|template)',
+             'Template injection via eval'),
+            # Java
+            (r'Velocity\.evaluate\s*\([^)]*?request\.getParameter',
+             'SSTI in Apache Velocity'),
+            (r'FreeMarker.*?Template.*?process\s*\([^)]*?request',
+             'SSTI in FreeMarker'),
+        ]
+
+        # Insecure Direct Object Reference (IDOR)
+        self.idor_patterns = [
+            # Direct ID usage from request
+            (r'(find|get|findOne|findById)\s*\([^)]*?(request\.|req\.|params|args)\.(id|userId|accountId)',
+             'Potential IDOR - direct object access via user ID'),
+            (r'(DELETE|UPDATE|SELECT).*?WHERE.*?(request\.|req\.)(id|userId)',
+             'SQL IDOR - user-controlled ID in query'),
+            (r'\.filter\s*\(\s*id\s*=\s*(request\.|req\.)',
+             'ORM IDOR - filtering by user-controlled ID'),
+            # File access
+            (r'(open|read|download).*?(request\.|req\.|params)\.(file|filename|path)',
+             'IDOR in file access - missing authorization check'),
+        ]
+
+        # API Security Issues
+        self.api_security_patterns = [
+            # Missing rate limiting
+            (r'@(app\.route|router\.(get|post))\s*\([^\)]*?\)(?!.*@limiter)',
+             'API endpoint without rate limiting'),
+            # Mass assignment
+            (r'(User|Model)\.objects\.create\s*\(\s*\*\*request\.',
+             'Mass assignment vulnerability - use explicit fields'),
+            (r'new (User|Model)\s*\(\s*req\.body\s*\)',
+             'Mass assignment via req.body'),
+            # Verbose errors
+            (r'(except|catch).*?(\n.*?){0,3}(print|console\.log|echo).*?(e\.|error|exception)',
+             'Verbose error exposure - information disclosure'),
+        ]
+
+        # Hardcoded Secrets Detection (Enhanced)
+        self.hardcoded_secrets_enhanced_patterns = [
+            # API Keys with patterns
+            (r'["\'][0-9a-zA-Z]{32,}["\']',
+             'Potential hardcoded API key or token'),
+            # AWS
+            (r'AKIA[0-9A-Z]{16}',
+             'AWS Access Key ID'),
+            # Private keys
+            (r'-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----',
+             'Hardcoded private key'),
+            # Generic secrets
+            (r'(secret|password|passwd|pwd)\s*=\s*["\'][^"\']{8,}["\']',
+             'Hardcoded password or secret'),
         ]
 
     def scan(self, file_path: str, content: str, file_type: str) -> List[Finding]:
@@ -716,6 +924,40 @@ class WebVulnerabilityScanner(BaseScanner):
                 "Prototype Pollution", Severity.HIGH,
                 "Validate object keys. Avoid Object.assign/spread with user input. Use Object.create(null).",
                 "CWE-1321", "A04:2021 - Insecure Design"
+            ))
+
+        # === NEW ADVANCED PATTERNS FOR IMPROVED DETECTION ===
+
+        if checks.get("ssti", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.ssti_patterns,
+                "Server-Side Template Injection (SSTI)", Severity.CRITICAL,
+                "Never pass user input directly to template engines. Use sandboxed templates.",
+                "CWE-94", "A03:2021 - Injection"
+            ))
+
+        if checks.get("idor", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.idor_patterns,
+                "Insecure Direct Object Reference (IDOR)", Severity.HIGH,
+                "Implement authorization checks. Verify user owns the requested resource.",
+                "CWE-639", "A01:2021 - Broken Access Control"
+            ))
+
+        if checks.get("api_security", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.api_security_patterns,
+                "API Security Issue", Severity.MEDIUM,
+                "Implement rate limiting, input validation, and proper error handling.",
+                "CWE-799", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("hardcoded_secrets_enhanced", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.hardcoded_secrets_enhanced_patterns,
+                "Hardcoded Secret or Credential", Severity.CRITICAL,
+                "Use environment variables or secret management systems. Never hardcode credentials.",
+                "CWE-798", "A02:2021 - Cryptographic Failures"
             ))
 
         return findings
