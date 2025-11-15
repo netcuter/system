@@ -37,14 +37,23 @@ Examples:
   # Scan current directory
   python3 security_audit_cli.py --path .
 
+  # Scan with ML false positive reduction
+  python3 security_audit_cli.py --path . --ml-fp-reduction
+
+  # Scan with LOCAL AI assistant (LM Studio on localhost)
+  python3 security_audit_cli.py --path . --ai-assistant
+
+  # Scan with REMOTE AI assistant (LM Studio on another machine in LAN)
+  python3 security_audit_cli.py --path . --ai-assistant --ai-server http://192.168.1.100:1234
+
+  # Full scan with ML + AI (auto-consent for batch processing)
+  python3 security_audit_cli.py --path . --ml-fp-reduction --ai-assistant --ai-always-consent
+
   # Scan with HTML report
   python3 security_audit_cli.py --path /path/to/project --output html --report report.html
 
   # Scan with specific scanners
   python3 security_audit_cli.py --path . --scanners web,secrets
-
-  # Scan with custom config
-  python3 security_audit_cli.py --path . --config config.json
 
   # Fail on critical issues (useful for CI/CD)
   python3 security_audit_cli.py --path . --fail-on critical
@@ -115,25 +124,26 @@ Examples:
     parser.add_argument(
         '--ai-assistant',
         action='store_true',
-        help='Enable AI assistant for enhanced analysis (optional, requires consent)'
+        help='Enable LOCAL AI assistant using LM Studio (100%% offline)'
     )
 
     parser.add_argument(
-        '--ai-api-key',
+        '--ai-server',
         type=str,
-        help='Claude API key for AI assistant (optional, uses mock mode if not provided)'
+        default='http://localhost:1234',
+        help='LM Studio server URL (default: http://localhost:1234, example: http://192.168.1.100:1234 for remote)'
     )
 
     parser.add_argument(
         '--ai-always-consent',
         action='store_true',
-        help='Auto-approve all AI requests for this project (code is still anonymized)'
+        help='Auto-approve all AI requests (skip prompts, useful for batch processing)'
     )
 
     parser.add_argument(
         '--version',
         action='version',
-        version='Security Audit System v2.5.0 - Checkmarx Killer (ML + AI)'
+        version='Security Audit System v2.5.1 - Checkmarx Killer (ML + Local AI via LM Studio)'
     )
 
     args = parser.parse_args()
@@ -246,10 +256,11 @@ Examples:
         # Apply AI assistant enhancement
         if args.ai_assistant:
             if args.verbose:
-                print("\n[*] AI Assistant enabled (requires user consent)")
+                print("\n[*] LOCAL AI Assistant enabled (LM Studio)")
+                print(f"[*] Server: {args.ai_server}")
 
             assistant = AIAssistant(
-                api_key=args.ai_api_key or 'mock',
+                server_url=args.ai_server,
                 enabled=True,
                 always_consent=args.ai_always_consent
             )
@@ -319,9 +330,9 @@ def print_banner():
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
 ║         Security Audit System for Web Applications           ║
-║                         Version 2.5.0                         ║
-║          🚀 Checkmarx Killer: ML + AI Assistant 🤖            ║
-║         Local ML • Optional AI • 8 Frameworks                 ║
+║                         Version 2.5.1                         ║
+║      🚀 Checkmarx Killer: ML + Local AI (LM Studio) 🤖        ║
+║        Local ML • Local AI • 8 Frameworks • 100% Offline      ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
     """
