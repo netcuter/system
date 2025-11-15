@@ -5,7 +5,7 @@
 Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami. **Wspiera OWASP ASVS 4.0 i wiele języków programowania.**
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
-![Python](https://img.shields.io/badge/python-3.7+-green.svg)
+![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -84,7 +84,7 @@ Pokrywa wszystkie kategorie ASVS:
 git clone https://github.com/yourusername/security-audit-system.git
 cd security-audit-system
 
-# Opcjonalna instalacja zależności (system działa na czystym Pythonie 3.7+)
+# Opcjonalna instalacja zależności (system działa na czystym Pythonie 3.8+)
 pip install -r requirements.txt
 ```
 
