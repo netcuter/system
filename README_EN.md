@@ -4,10 +4,13 @@
 
 Comprehensive system for automatic security auditing of web application source code. Detects OWASP Top 10 vulnerabilities, hardcoded secrets, and dependency issues. **Supports OWASP ASVS 4.0 and multiple programming languages.**
 
-![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.5.1-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
-![CWE 2024](https://img.shields.io/badge/CWE%20Top%2025-2024-red.svg)
+![Checkmarx Level](https://img.shields.io/badge/Checkmarx-Enterprise-orange.svg)
+![Detection](https://img.shields.io/badge/detection-42--48%20vulns%2F1K%20LOC-green.svg)
+![AI](https://img.shields.io/badge/AI-LM%20Studio%20%28Local%29-purple.svg)
+![CWE 2025](https://img.shields.io/badge/CWE%20Top%2025-2025-red.svg)
 ![SAST](https://img.shields.io/badge/SAST-Bandit%20%7C%20Semgrep%20%7C%20CodeQL-green.svg)
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -27,7 +30,7 @@ Comprehensive system for automatic security auditing of web application source c
 - **Weak Cryptography** (CWE-327) - identifies weak cryptographic algorithms
 - **Hardcoded Credentials** (CWE-798) - detects hardcoded passwords and keys
 
-**🆕 CWE Top 25 2024 - New Patterns:**
+**🆕 CWE Top 25 2025 - New Patterns:**
 - **Code Injection** (CWE-94) - detects eval(), exec() with user input
 - **Clickjacking** (CWE-1021) - missing X-Frame-Options headers
 - **Improper Authorization / IDOR** (CWE-863) - broken access control
