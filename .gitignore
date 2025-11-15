@@ -45,3 +45,6 @@ config.json
 
 # Test outputs
 test_report.*
+test_projects/
+test_v2*.json
+test_*.json
