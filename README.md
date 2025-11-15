@@ -4,15 +4,17 @@
 
 Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami. **Wspiera OWASP ASVS 4.0 i wiele języków programowania.**
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
+![CWE 2024](https://img.shields.io/badge/CWE%20Top%2025-2024-red.svg)
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🚀 Funkcje
 
 ### Wykrywanie Podatności Webowych
+**Klasyczne OWASP Top 10:**
 - **SQL Injection** (CWE-89) - wykrywa niebezpieczne konkatenacje SQL
 - **XSS** (CWE-79) - identyfikuje niebezpieczne renderowanie danych
 - **Command Injection** (CWE-78) - wykrywa wykonywanie poleceń z user input
@@ -23,6 +25,18 @@ Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego a
 - **Insecure Deserialization** (CWE-502) - wykrywa niebezpieczną deserializację
 - **Weak Cryptography** (CWE-327) - identyfikuje słabe algorytmy kryptograficzne
 - **Hardcoded Credentials** (CWE-798) - wykrywa hardcoded hasła i klucze
+
+**🆕 CWE Top 25 2024 - Nowe Wzorce:**
+- **Code Injection** (CWE-94) - wykrywa eval(), exec() z user input
+- **Clickjacking** (CWE-1021) - brak nagłówków X-Frame-Options
+- **Improper Authorization / IDOR** (CWE-863) - nieprawidłowa autoryzacja dostępu
+- **Information Disclosure** (CWE-200) - wyciek wrażliwych informacji
+- **Resource Exhaustion / DoS** (CWE-400) - ataki wyczerpania zasobów
+- **Mass Assignment** (CWE-915) - przypisywanie masowe bez filtrowania
+- **JWT Security Issues** (CWE-347) - słabe klucze, brak weryfikacji
+- **Improper Privilege Management** (CWE-269) - błędy zarządzania uprawnieniami
+- **Open Redirect** (CWE-601) - przekierowania na zewnętrzne URL
+- **Server-Side Template Injection** (CWE-94) - SSTI w silnikach szablonów
 
 ### Wykrywanie Sekretów
 - AWS Access Keys & Secret Keys
