@@ -4,10 +4,11 @@
 
 Comprehensive system for automatic security auditing of web application source code. Detects OWASP Top 10 vulnerabilities, hardcoded secrets, and dependency issues. **Supports OWASP ASVS 4.0 and multiple programming languages.**
 
-![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
 ![CWE 2024](https://img.shields.io/badge/CWE%20Top%2025-2024-red.svg)
+![SAST](https://img.shields.io/badge/SAST-Bandit%20%7C%20Semgrep%20%7C%20CodeQL-green.svg)
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -37,6 +38,19 @@ Comprehensive system for automatic security auditing of web application source c
 - **Improper Privilege Management** (CWE-269) - privilege management flaws
 - **Open Redirect** (CWE-601) - redirects to external URLs
 - **Server-Side Template Injection** (CWE-94) - SSTI in template engines
+
+**🔬 Professional SAST Tool Patterns (2025):**
+- **HTTP Request Timeout** (Bandit B113) - detects requests without timeout
+- **Archive Extraction** (Bandit B202) - unsafe extractall()
+- **Jinja2 Security** (Bandit B701) - autoescape=False in templates
+- **TOCTOU Race Conditions** (CVE-2025) - check-then-use patterns
+- **ReDoS** (CWE-1333) - catastrophic backtracking in regex
+- **Integer Overflow** (CWE-190) - unchecked int() conversions
+- **File Upload** (CWE-434) - missing file validation
+- **Advanced Crypto** (Bandit) - DES, RC4, ECB mode, weak random
+- **Advanced SQL/NoSQL** (Semgrep) - advanced injection patterns
+- **LDAP Injection** (CWE-90) - LDAP search vulnerabilities
+- **Prototype Pollution** (CWE-1321) - JavaScript Object.assign
 
 ### Secrets Detection
 - AWS Access Keys & Secret Keys
