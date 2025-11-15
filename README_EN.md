@@ -4,15 +4,17 @@
 
 Comprehensive system for automatic security auditing of web application source code. Detects OWASP Top 10 vulnerabilities, hardcoded secrets, and dependency issues. **Supports OWASP ASVS 4.0 and multiple programming languages.**
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
+![CWE 2024](https://img.shields.io/badge/CWE%20Top%2025-2024-red.svg)
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🚀 Features
 
 ### Web Vulnerability Detection
+**Classic OWASP Top 10:**
 - **SQL Injection** (CWE-89) - detects dangerous SQL concatenations
 - **XSS** (CWE-79) - identifies unsafe data rendering
 - **Command Injection** (CWE-78) - detects command execution from user input
@@ -23,6 +25,18 @@ Comprehensive system for automatic security auditing of web application source c
 - **Insecure Deserialization** (CWE-502) - detects unsafe deserialization
 - **Weak Cryptography** (CWE-327) - identifies weak cryptographic algorithms
 - **Hardcoded Credentials** (CWE-798) - detects hardcoded passwords and keys
+
+**🆕 CWE Top 25 2024 - New Patterns:**
+- **Code Injection** (CWE-94) - detects eval(), exec() with user input
+- **Clickjacking** (CWE-1021) - missing X-Frame-Options headers
+- **Improper Authorization / IDOR** (CWE-863) - broken access control
+- **Information Disclosure** (CWE-200) - sensitive information leaks
+- **Resource Exhaustion / DoS** (CWE-400) - resource exhaustion attacks
+- **Mass Assignment** (CWE-915) - mass assignment without field filtering
+- **JWT Security Issues** (CWE-347) - weak secrets, missing verification
+- **Improper Privilege Management** (CWE-269) - privilege management flaws
+- **Open Redirect** (CWE-601) - redirects to external URLs
+- **Server-Side Template Injection** (CWE-94) - SSTI in template engines
 
 ### Secrets Detection
 - AWS Access Keys & Secret Keys

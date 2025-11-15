@@ -154,6 +154,110 @@ class WebVulnerabilityScanner(BaseScanner):
              'Use of insecure HTTP protocol'),
         ]
 
+        # Code Injection patterns (CWE-94) - NEW 2024
+        self.code_injection_patterns = [
+            (r'\beval\s*\(',
+             'Use of eval() - code injection risk'),
+            (r'\bexec\s*\(',
+             'Use of exec() - code injection risk'),
+            (r'Function\s*\(\s*[^)]*?(req\.|request\.|params)',
+             'Dynamic function creation with user input'),
+            (r'eval\s*\(\s*\$_(GET|POST|REQUEST|COOKIE)',
+             'Eval with user input (PHP)'),
+            (r'assert\s*\([^)]*?(request\.|input\()',
+             'Assert with user input'),
+        ]
+
+        # Clickjacking patterns (CWE-1021) - NEW 2024
+        self.clickjacking_patterns = [
+            (r'@app\.route.*?(?!.*X-Frame-Options)',
+             'Missing X-Frame-Options header'),
+            (r'(res|response)\.send\s*\((?!.*X-Frame-Options)',
+             'Response without clickjacking protection'),
+        ]
+
+        # Improper Authorization / IDOR patterns (CWE-863) - NEW 2024
+        self.authorization_patterns = [
+            (r'(User|Account|Profile)\.objects\.get\s*\(\s*id\s*=\s*(request\.|params)',
+             'Potential IDOR - direct object reference without authorization check'),
+            (r'findById\s*\(\s*(req\.|request\.|params)',
+             'Direct object access without authorization'),
+            (r'WHERE\s+id\s*=\s*\$_(GET|POST|REQUEST)',
+             'SQL query with user-controlled ID without authorization'),
+        ]
+
+        # Information Disclosure patterns (CWE-200) - NEW 2024
+        self.info_disclosure_patterns = [
+            (r'(print|echo|console\.log)\s*\([^)]*?(password|secret|token|api_key)',
+             'Logging sensitive information'),
+            (r'error_reporting\s*\(\s*E_ALL',
+             'Verbose error reporting enabled'),
+            (r'(app\.run|app\.listen)\s*\([^)]*?debug\s*[=:]\s*True',
+             'Debug mode enabled in production'),
+            (r'traceback\.print_exc\s*\(',
+             'Full stack trace exposure'),
+        ]
+
+        # Resource Exhaustion / DoS patterns (CWE-400) - NEW 2024
+        self.resource_exhaustion_patterns = [
+            (r'while\s*\(\s*True\s*\)(?!.*break)',
+             'Infinite loop without break condition'),
+            (r'(recursion|recursive).*?(?!.*limit)',
+             'Unbounded recursion'),
+            (r'\.read\s*\(\s*\)(?!.*size|.*limit)',
+             'Reading entire file without size limit'),
+            (r'for.*?in.*?request\.(files|data)(?!.*limit)',
+             'Processing user input without rate limiting'),
+        ]
+
+        # Mass Assignment patterns - NEW 2024
+        self.mass_assignment_patterns = [
+            (r'\.save\s*\(\s*request\.(POST|data|json)',
+             'Mass assignment without field filtering'),
+            (r'\.update\s*\(\s*\*\*request\.(POST|data|json)',
+             'Unsafe mass update from user input'),
+            (r'Object\.assign\s*\([^,]+,\s*(req\.body|request\.data)',
+             'Mass assignment in JavaScript'),
+        ]
+
+        # JWT Security Issues - NEW 2024
+        self.jwt_patterns = [
+            (r'jwt\.decode\s*\([^)]*?verify\s*=\s*False',
+             'JWT signature verification disabled'),
+            (r'algorithm\s*=\s*["\']none["\']',
+             'JWT with "none" algorithm'),
+            (r'jwt\.encode\s*\([^)]*?HS256.*?(secret|key)\s*=\s*["\'][^"\']{1,8}["\']',
+             'Weak JWT secret key'),
+        ]
+
+        # Privilege Management patterns (CWE-269) - NEW 2024
+        self.privilege_patterns = [
+            (r'(sudo|su|runas)\s+',
+             'Privilege elevation command'),
+            (r'chmod\s+777',
+             'Overly permissive file permissions'),
+            (r'setuid\s*\(\s*0\s*\)',
+             'Setting UID to root'),
+            (r'is_admin\s*=\s*True(?!.*if|.*check)',
+             'Hardcoded admin privilege'),
+        ]
+
+        # Open Redirect patterns - NEW 2024
+        self.open_redirect_patterns = [
+            (r'(redirect|location)\s*\(\s*(request\.|params|req\.)',
+             'Open redirect - user-controlled URL'),
+            (r'header\s*\(\s*["\']Location:.*?\$_(GET|POST|REQUEST)',
+             'Open redirect in PHP'),
+        ]
+
+        # Server-Side Template Injection (SSTI) - NEW 2024
+        self.ssti_patterns = [
+            (r'render_template_string\s*\([^)]*?(request\.|input\()',
+             'Template injection risk (Flask)'),
+            (r'Template\s*\([^)]*?(req\.|request\.|params)',
+             'Server-side template injection risk'),
+        ]
+
     def scan(self, file_path: str, content: str, file_type: str) -> List[Finding]:
         """Scan file for web vulnerabilities"""
         findings = []
@@ -248,6 +352,87 @@ class WebVulnerabilityScanner(BaseScanner):
             "Use HTTPS for all external communications.",
             "CWE-319", "A02:2021 - Cryptographic Failures"
         ))
+
+        # NEW 2024 CWE Top 25 patterns
+        if checks.get("code_injection", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.code_injection_patterns,
+                "Code Injection", Severity.CRITICAL,
+                "Never use eval() or exec() with user input. Use safe alternatives.",
+                "CWE-94", "A03:2021 - Injection"
+            ))
+
+        if checks.get("clickjacking", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.clickjacking_patterns,
+                "Clickjacking", Severity.MEDIUM,
+                "Add X-Frame-Options: DENY or SAMEORIGIN header to prevent clickjacking.",
+                "CWE-1021", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("authorization", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.authorization_patterns,
+                "Improper Authorization (IDOR)", Severity.HIGH,
+                "Always verify user authorization before accessing objects. Check ownership.",
+                "CWE-863", "A01:2021 - Broken Access Control"
+            ))
+
+        if checks.get("info_disclosure", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.info_disclosure_patterns,
+                "Information Disclosure", Severity.MEDIUM,
+                "Never log sensitive data. Disable debug mode in production.",
+                "CWE-200", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("resource_exhaustion", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.resource_exhaustion_patterns,
+                "Resource Exhaustion / DoS", Severity.HIGH,
+                "Implement rate limiting, timeouts, and resource constraints.",
+                "CWE-400", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("mass_assignment", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.mass_assignment_patterns,
+                "Mass Assignment", Severity.HIGH,
+                "Use field whitelisting. Never directly assign user input to models.",
+                "CWE-915", "A04:2021 - Insecure Design"
+            ))
+
+        if checks.get("jwt_security", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.jwt_patterns,
+                "JWT Security Issue", Severity.CRITICAL,
+                "Always verify JWT signatures. Use strong secrets (32+ chars). Avoid 'none' algorithm.",
+                "CWE-347", "A02:2021 - Cryptographic Failures"
+            ))
+
+        if checks.get("privilege_management", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.privilege_patterns,
+                "Improper Privilege Management", Severity.HIGH,
+                "Follow principle of least privilege. Avoid running as root. Use proper permission checks.",
+                "CWE-269", "A01:2021 - Broken Access Control"
+            ))
+
+        if checks.get("open_redirect", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.open_redirect_patterns,
+                "Open Redirect", Severity.MEDIUM,
+                "Validate redirect URLs against whitelist. Never redirect to user-controlled URLs.",
+                "CWE-601", "A01:2021 - Broken Access Control"
+            ))
+
+        if checks.get("ssti", True):
+            findings.extend(self._check_patterns(
+                file_path, lines, self.ssti_patterns,
+                "Server-Side Template Injection (SSTI)", Severity.CRITICAL,
+                "Never pass user input to template engines. Use sandboxed templates.",
+                "CWE-94", "A03:2021 - Injection"
+            ))
 
         return findings
 
