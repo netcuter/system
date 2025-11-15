@@ -4,7 +4,7 @@
 
 Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami. **Wspiera OWASP ASVS 4.0 i wiele języków programowania.**
 
-![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![ASVS](https://img.shields.io/badge/ASVS-4.0-purple.svg)
 ![CWE 2024](https://img.shields.io/badge/CWE%20Top%2025-2024-red.svg)
