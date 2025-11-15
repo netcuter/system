@@ -31,7 +31,8 @@ DEFAULT_CONFIG = {
             ".py", ".js", ".ts", ".jsx", ".tsx",
             ".php", ".java", ".rb", ".go", ".cs",
             ".html", ".htm", ".xml", ".json",
-            ".yml", ".yaml", ".env", ".config"
+            ".yml", ".yaml", ".env", ".config",
+            ".rs", ".kt", ".scala", ".ex", ".exs"
         ]
     },
     "scanners": {
@@ -68,6 +69,15 @@ DEFAULT_CONFIG = {
             "check_outdated": True
         },
         "config_analyzer": {
+            "enabled": True,
+            "severity_threshold": "INFO"
+        },
+        "asvs_scanner": {
+            "enabled": True,
+            "asvs_level": 1,
+            "severity_threshold": "INFO"
+        },
+        "multilanguage_scanner": {
             "enabled": True,
             "severity_threshold": "INFO"
         }

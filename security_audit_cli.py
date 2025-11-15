@@ -11,13 +11,17 @@ from security_audit.core import Config, AuditEngine
 from security_audit.scanners import (
     WebVulnerabilityScanner,
     SecretsDetector,
-    DependencyScanner
+    DependencyScanner,
+    ASVSScanner,
+    MultiLanguageScanner
 )
 from security_audit.reporters import (
     JSONReporter,
     HTMLReporter,
-    SARIFReporter
+    SARIFReporter,
+    ASVSReporter
 )
+from security_audit.asvs import ASVSLevel
 
 
 def main():
@@ -59,9 +63,17 @@ Examples:
     parser.add_argument(
         '--output',
         type=str,
-        choices=['json', 'html', 'sarif'],
+        choices=['json', 'html', 'sarif', 'asvs-json', 'asvs-html'],
         default='json',
         help='Output format (default: json)'
+    )
+
+    parser.add_argument(
+        '--asvs-level',
+        type=int,
+        choices=[1, 2, 3],
+        default=1,
+        help='ASVS verification level (1=Opportunistic, 2=Standard, 3=Advanced)'
     )
 
     parser.add_argument(
@@ -73,7 +85,7 @@ Examples:
     parser.add_argument(
         '--scanners',
         type=str,
-        help='Comma-separated list of scanners to run (web,secrets,dependencies)'
+        help='Comma-separated list of scanners to run (web,secrets,dependencies,asvs,multilang)'
     )
 
     parser.add_argument(
@@ -113,7 +125,7 @@ Examples:
         scanner_names = [s.strip() for s in args.scanners.split(',')]
         scanners_to_run = scanner_names
     else:
-        scanners_to_run = ['web', 'secrets', 'dependencies']
+        scanners_to_run = ['web', 'secrets', 'dependencies', 'asvs', 'multilang']
 
     if 'web' in scanners_to_run:
         web_scanner = WebVulnerabilityScanner(config.get_scanner_config('web_vulnerabilities'))
@@ -132,6 +144,20 @@ Examples:
         engine.register_scanner(dep_scanner)
         if args.verbose:
             print(f"[+] Registered: {dep_scanner.get_name()}")
+
+    if 'asvs' in scanners_to_run:
+        asvs_config = config.get_scanner_config('asvs_scanner')
+        asvs_config['asvs_level'] = args.asvs_level
+        asvs_scanner = ASVSScanner(asvs_config)
+        engine.register_scanner(asvs_scanner)
+        if args.verbose:
+            print(f"[+] Registered: {asvs_scanner.get_name()} (Level {args.asvs_level})")
+
+    if 'multilang' in scanners_to_run:
+        ml_scanner = MultiLanguageScanner(config.get_scanner_config('multilanguage_scanner'))
+        engine.register_scanner(ml_scanner)
+        if args.verbose:
+            print(f"[+] Registered: {ml_scanner.get_name()}")
 
     # Validate path
     project_path = Path(args.path).resolve()
@@ -204,6 +230,12 @@ def generate_report(findings, stats, project_path, output_format):
     elif output_format == 'sarif':
         reporter = SARIFReporter()
         return reporter.generate(findings, stats, project_path)
+    elif output_format == 'asvs-json':
+        reporter = ASVSReporter(ASVSLevel.LEVEL_1)
+        return reporter.generate(findings, stats, project_path, 'json')
+    elif output_format == 'asvs-html':
+        reporter = ASVSReporter(ASVSLevel.LEVEL_1)
+        return reporter.generate(findings, stats, project_path, 'html')
     else:
         raise ValueError(f"Unknown output format: {output_format}")
 
