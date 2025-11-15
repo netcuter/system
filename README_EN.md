@@ -330,7 +330,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 👤 Author
 
-Security Audit Team
+netcuter
 
 ## 🙏 Acknowledgments
 
