@@ -47,3 +47,4 @@ config.json
 test_report.*
 test_projects/
 test_v2*.json
+test_*.json
