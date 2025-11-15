@@ -1,0 +1,43 @@
+{
+  "model": "trained_models/fp_classifier_rf.pkl",
+  "test_apps": [
+    "juiceshop",
+    "webgoat",
+    "aspnet"
+  ],
+  "results": [
+    {
+      "app": "juiceshop",
+      "total_findings": 6266,
+      "predicted_real_vulns": 2306,
+      "predicted_false_positives": 3960,
+      "fp_reduction_pct": 63.2,
+      "avg_confidence_fp": 0.838,
+      "avg_confidence_real": 0.937
+    },
+    {
+      "app": "webgoat",
+      "total_findings": 1601,
+      "predicted_real_vulns": 867,
+      "predicted_false_positives": 734,
+      "fp_reduction_pct": 45.8,
+      "avg_confidence_fp": 0.831,
+      "avg_confidence_real": 0.937
+    },
+    {
+      "app": "aspnet",
+      "total_findings": 120,
+      "predicted_real_vulns": 40,
+      "predicted_false_positives": 80,
+      "fp_reduction_pct": 66.7,
+      "avg_confidence_fp": 0.909,
+      "avg_confidence_real": 0.963
+    }
+  ],
+  "aggregate": {
+    "total_findings": 7987,
+    "predicted_real_vulns": 3213,
+    "predicted_false_positives": 4774,
+    "fp_reduction_pct": 59.8
+  }
+}
