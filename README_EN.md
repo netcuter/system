@@ -1,8 +1,8 @@
-# System Audytu Bezpieczeństwa Kodu Aplikacji Webowych
+# Web Application Code Security Audit System
 
 **[English](README_EN.md) | [Polski](README.md)**
 
-Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego aplikacji webowych. Wykrywa podatności OWASP Top 10, hardcoded secrets, oraz problemy z zależnościami. **Wspiera OWASP ASVS 4.0 i wiele języków programowania.**
+Comprehensive system for automatic security auditing of web application source code. Detects OWASP Top 10 vulnerabilities, hardcoded secrets, and dependency issues. **Supports OWASP ASVS 4.0 and multiple programming languages.**
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.7+-green.svg)
@@ -10,21 +10,21 @@ Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego a
 ![Languages](https://img.shields.io/badge/languages-10+-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## 🚀 Funkcje
+## 🚀 Features
 
-### Wykrywanie Podatności Webowych
-- **SQL Injection** (CWE-89) - wykrywa niebezpieczne konkatenacje SQL
-- **XSS** (CWE-79) - identyfikuje niebezpieczne renderowanie danych
-- **Command Injection** (CWE-78) - wykrywa wykonywanie poleceń z user input
-- **Path Traversal** (CWE-22) - identyfikuje zagrożenia traversal ścieżek
-- **SSRF** (CWE-918) - wykrywa podatności Server-Side Request Forgery
-- **XXE** (CWE-611) - identyfikuje problemy z XML parsers
-- **CSRF** (CWE-352) - sprawdza ochronę przed atakami CSRF
-- **Insecure Deserialization** (CWE-502) - wykrywa niebezpieczną deserializację
-- **Weak Cryptography** (CWE-327) - identyfikuje słabe algorytmy kryptograficzne
-- **Hardcoded Credentials** (CWE-798) - wykrywa hardcoded hasła i klucze
+### Web Vulnerability Detection
+- **SQL Injection** (CWE-89) - detects dangerous SQL concatenations
+- **XSS** (CWE-79) - identifies unsafe data rendering
+- **Command Injection** (CWE-78) - detects command execution from user input
+- **Path Traversal** (CWE-22) - identifies path traversal threats
+- **SSRF** (CWE-918) - detects Server-Side Request Forgery vulnerabilities
+- **XXE** (CWE-611) - identifies XML parser issues
+- **CSRF** (CWE-352) - checks CSRF attack protection
+- **Insecure Deserialization** (CWE-502) - detects unsafe deserialization
+- **Weak Cryptography** (CWE-327) - identifies weak cryptographic algorithms
+- **Hardcoded Credentials** (CWE-798) - detects hardcoded passwords and keys
 
-### Wykrywanie Sekretów
+### Secrets Detection
 - AWS Access Keys & Secret Keys
 - GitHub Tokens (PAT, OAuth)
 - Google API Keys
@@ -36,18 +36,18 @@ Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego a
 - SendGrid, Twilio, MailChimp API Keys
 - Generic API keys, passwords, tokens
 
-### Analiza Zależności
-- Wykrywanie znanych podatności w pakietach NPM, Python, PHP
-- Identyfikacja nieprzypietych wersji (wildcards)
-- Ostrzeżenia o przestarzałych bibliotekach
+### Dependency Analysis
+- Detects known vulnerabilities in NPM, Python, PHP packages
+- Identifies unpinned versions (wildcards)
+- Warnings about outdated libraries
 
-### Raportowanie
-- **JSON** - strukturyzowany format dla automatyzacji
-- **HTML** - wizualny raport z podświetleniem kodu
-- **SARIF** - standard dla integracji z GitHub, GitLab, Azure DevOps
-- **ASVS JSON/HTML** - raporty zgodności z OWASP ASVS 4.0
+### Reporting
+- **JSON** - structured format for automation
+- **HTML** - visual report with code highlighting
+- **SARIF** - standard for integration with GitHub, GitLab, Azure DevOps
+- **ASVS JSON/HTML** - OWASP ASVS 4.0 compliance reports
 
-### 🌍 Wsparcie Wielu Języków i Frameworków
+### 🌍 Multi-Language & Framework Support
 - **Python** (Django, Flask)
 - **JavaScript/TypeScript** (Node.js, Express, React, Vue, Angular)
 - **PHP** (Laravel, Symfony)
@@ -61,12 +61,12 @@ Kompleksowy system do automatycznego audytu bezpieczeństwa kodu źródłowego a
 - **Elixir** (Phoenix)
 
 ### 📋 OWASP ASVS 4.0 Compliance
-System implementuje weryfikację zgodności z **Application Security Verification Standard (ASVS) 4.0**:
-- **Level 1** - Opportunistic (podstawowa weryfikacja)
-- **Level 2** - Standard (standardowa weryfikacja dla większości aplikacji)
-- **Level 3** - Advanced (zaawansowana weryfikacja dla krytycznych aplikacji)
+The system implements **Application Security Verification Standard (ASVS) 4.0** compliance verification:
+- **Level 1** - Opportunistic (basic verification)
+- **Level 2** - Standard (standard verification for most applications)
+- **Level 3** - Advanced (advanced verification for critical applications)
 
-Pokrywa wszystkie kategorie ASVS:
+Covers all ASVS categories:
 - V2: Authentication
 - V3: Session Management
 - V4: Access Control
@@ -75,44 +75,45 @@ Pokrywa wszystkie kategorie ASVS:
 - V7: Error Handling and Logging
 - V8: Data Protection
 - V9: Communication
-- V10-V14: i więcej...
+- V10-V14: and more...
 
-## 📦 Instalacja
+## 📦 Installation
 
 ```bash
-# Klonowanie repozytorium
+# Clone the repository
 git clone https://github.com/yourusername/security-audit-system.git
 cd security-audit-system
 
-# Opcjonalna instalacja zależności (system działa na czystym Pythonie 3.7+)
+# Optional dependency installation (system works on pure Python 3.7+)
 pip install -r requirements.txt
 ```
 
-## 🎯 Szybki Start
+## 🎯 Quick Start
 
 ```bash
-# Skanowanie bieżącego katalogu (wszystkie skanery)
+# Scan current directory (all scanners)
 python3 security_audit_cli.py --path .
 
-# Skanowanie z raportem HTML
+# Scan with HTML report
 python3 security_audit_cli.py --path . --output html --report report.html
 
-# Raport zgodności ASVS Level 2
+# ASVS Level 2 compliance report
 python3 security_audit_cli.py --path . --output asvs-html --asvs-level 2
 
-# Skanowanie tylko określonych typów
+# Scan only specific types
 python3 security_audit_cli.py --path . --scanners web,secrets,asvs,multilang
 
-# Skanowanie z fail na critical issues (CI/CD)
+# Scan with fail on critical issues (CI/CD)
 python3 security_audit_cli.py --path . --fail-on critical
 ```
 
-## 📖 Dokumentacja
+## 📖 Documentation
 
-- [Przewodnik Użytkowania](USAGE_GUIDE.md) - szczegółowa dokumentacja
-- [README Security Audit](security_audit/README.md) - szczegóły techniczne
+- [Usage Guide (English)](USAGE_GUIDE_EN.md) - detailed documentation
+- [Usage Guide (Polish)](USAGE_GUIDE.md) - szczegółowa dokumentacja
+- [Security Audit README](security_audit/README.md) - technical details
 
-## 🔍 Przykład Użycia
+## 🔍 Usage Example
 
 ```bash
 $ python3 security_audit_cli.py --path examples --output html
@@ -150,7 +151,7 @@ Findings by severity:
 ================================================================================
 ```
 
-## 🛠️ Integracja CI/CD
+## 🛠️ CI/CD Integration
 
 ### GitHub Actions
 
@@ -184,7 +185,7 @@ security_audit:
       sast: security.sarif
 ```
 
-## 🎨 Wspierane Języki i Rozszerzenia
+## 🎨 Supported Languages & Extensions
 
 - **Python** (.py) - Django, Flask, FastAPI
 - **JavaScript/TypeScript** (.js, .ts, .jsx, .tsx) - Node.js, React, Vue, Angular
@@ -200,28 +201,28 @@ security_audit:
 - **HTML/XML** (.html, .htm, .xml)
 - **Config Files** (.yml, .yaml, .json, .env)
 
-## 📊 Formaty Raportów
+## 📊 Report Formats
 
 ### JSON Report
-Strukturyzowany format idealny dla automatyzacji i integracji z innymi narzędziami.
+Structured format ideal for automation and integration with other tools.
 
 ### HTML Report
-Wizualny, interaktywny raport z:
-- Kolorowym podświetleniem według wagi
-- Snippetami kodu z kontekstem
-- Rekomendacjami naprawy
-- Statystykami i podsumowaniem
+Visual, interactive report with:
+- Color-coded severity highlighting
+- Code snippets with context
+- Remediation recommendations
+- Statistics and summary
 
 ### SARIF Report
-Standard OASIS dla wyników statycznej analizy - integracja z:
+OASIS standard for static analysis results - integrates with:
 - GitHub Security
 - Azure DevOps
 - GitLab Security Dashboard
 - SonarQube
 
-## ⚙️ Konfiguracja
+## ⚙️ Configuration
 
-Stwórz `config.json` aby dostosować skanowanie:
+Create `config.json` to customize scanning:
 
 ```json
 {
@@ -250,17 +251,17 @@ Stwórz `config.json` aby dostosować skanowanie:
 }
 ```
 
-Użyj: `python3 security_audit_cli.py --path . --config config.json`
+Use: `python3 security_audit_cli.py --path . --config config.json`
 
-## 🏗️ Architektura
+## 🏗️ Architecture
 
 ```
 security-audit-system/
 ├── security_audit/
 │   ├── core/
-│   │   ├── engine.py          # Główny silnik audytu
-│   │   ├── scanner.py         # Interfejs bazowy
-│   │   └── config.py          # System konfiguracji
+│   │   ├── engine.py          # Main audit engine
+│   │   ├── scanner.py         # Base interface
+│   │   └── config.py          # Configuration system
 │   ├── scanners/
 │   │   ├── web_vulnerabilities.py
 │   │   ├── secrets_detector.py
@@ -270,57 +271,59 @@ security-audit-system/
 │       ├── html_reporter.py
 │       └── sarif_reporter.py
 ├── security_audit_cli.py      # CLI interface
-└── examples/                   # Przykładowy podatny kod
+└── examples/                   # Example vulnerable code
 ```
 
-## 🔐 Poziomy Wagi
+## 🔐 Severity Levels
 
-| Poziom | Opis | Działanie |
-|--------|------|-----------|
-| **CRITICAL** | Krytyczne zagrożenia wymagające natychmiastowej akcji | Napraw ASAP |
-| **HIGH** | Poważne podatności | Napraw w ciągu tygodnia |
-| **MEDIUM** | Średnie zagrożenia | Zaplanuj naprawę |
-| **LOW** | Niskie zagrożenia | Rozważ naprawę |
-| **INFO** | Informacyjne / best practices | Dobra praktyka |
+| Level | Description | Action |
+|-------|-------------|--------|
+| **CRITICAL** | Critical threats requiring immediate action | Fix ASAP |
+| **HIGH** | Serious vulnerabilities | Fix within a week |
+| **MEDIUM** | Medium threats | Plan remediation |
+| **LOW** | Low threats | Consider fixing |
+| **INFO** | Informational / best practices | Good practice |
 
-## 📝 Przykłady
+## 📝 Examples
 
-W katalogu `examples/` znajdziesz przykładowy podatny kod:
-- `vulnerable_code.py` - Python/Flask z podatnościami
-- `vulnerable_code.js` - JavaScript/Node.js z podatnościami
-- `package.json` - Przykład z podatnymi zależnościami
+In the `examples/` directory you'll find example vulnerable code:
+- `vulnerable_code.py` - Python/Flask with vulnerabilities
+- `vulnerable_code.js` - JavaScript/Node.js with vulnerabilities
+- `package.json` - Example with vulnerable dependencies
 
-## 🤝 Wkład w Projekt
+## 🤝 Contributing
 
-Contributions są mile widziane! Aby dodać nowy skaner lub poprawić istniejący:
+Contributions are welcome! To add a new scanner or improve an existing one:
 
-1. Fork repozytorium
-2. Stwórz branch (`git checkout -b feature/nowy-skaner`)
-3. Commit zmian (`git commit -am 'Dodaj nowy skaner'`)
-4. Push do brancha (`git push origin feature/nowy-skaner`)
-5. Stwórz Pull Request
+1. Fork the repository
+2. Create a branch (`git checkout -b feature/new-scanner`)
+3. Commit changes (`git commit -am 'Add new scanner'`)
+4. Push to branch (`git push origin feature/new-scanner`)
+5. Create Pull Request
 
-## ⚠️ Ograniczenia
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-- System wykrywa **potencjalne** podatności - wymaga weryfikacji
-- Nie zastępuje manualnego security review
-- Nie wykrywa błędów logiki biznesowej
-- Baza podatności wymaga aktualizacji
+## ⚠️ Limitations
 
-## 📜 Licencja
+- The system detects **potential** vulnerabilities - requires verification
+- Does not replace manual security review
+- Does not detect business logic errors
+- Vulnerability database requires updates
 
-MIT License - zobacz [LICENSE](LICENSE) dla szczegółów.
+## 📜 License
 
-## 👤 Autor
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 👤 Author
 
 Security Audit Team
 
-## 🙏 Podziękowania
+## 🙏 Acknowledgments
 
-- OWASP za dokumentację Top 10
-- MITRE za bazę CWE
-- Społeczność open source za inspirację
+- OWASP for Top 10 documentation
+- MITRE for CWE database
+- Open source community for inspiration
 
 ---
 
-**Uwaga**: Ten system jest narzędziem pomocniczym. Zawsze przeprowadzaj profesjonalny security audit przed wdrożeniem aplikacji produkcyjnej.
+**Note**: This system is a helper tool. Always conduct a professional security audit before deploying production applications.
