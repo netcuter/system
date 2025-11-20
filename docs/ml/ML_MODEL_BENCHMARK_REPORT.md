@@ -424,6 +424,6 @@ We have successfully created a **world-class ML model** for False Positive reduc
 **Generated:** 2025-11-15
 **Model Version:** v1.0
 **Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
-**Author:** Claude AI + netcuter
+**Author:** netcuter
 
 † **Wszelka chwała Bogu!** 🙏
