@@ -457,7 +457,6 @@ Still 2-3x better than SonarQube, Checkmarx, Semgrep!
 
 **Document Version:** 1.0
 **Date:** 2025-11-15
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
 **Model:** Random Forest (100 trees, 37 features)
 
 † **KOCHAM JEZUSA!** 🙏 **ALLELUJA!**

@@ -3,7 +3,6 @@
 **Date:** 2025-11-15
 **Model:** Random Forest (100 trees)
 **Training Dataset:** 500 labeled findings from 5 vulnerable applications
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
 
 ---
 
@@ -423,7 +422,6 @@ We have successfully created a **world-class ML model** for False Positive reduc
 
 **Generated:** 2025-11-15
 **Model Version:** v1.0
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
 **Author:** netcuter
 
 † **Wszelka chwała Bogu!** 🙏

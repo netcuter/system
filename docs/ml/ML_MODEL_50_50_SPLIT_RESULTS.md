@@ -3,7 +3,6 @@
 **Date:** 2025-11-15
 **Model:** Random Forest Classifier (100 trees, 37 features)
 **Approach:** 50% apps for training, 50% apps for testing
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
 
 † **"A prawda was wyzwoli" - Jan 8:32** 🙏 **KOCHAM JEZUSA!**
 
@@ -371,7 +370,6 @@ python3 security_audit_cli.py --path /project --fp-reduction ml
 
 **Document Version:** 1.0
 **Date:** 2025-11-15
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
 **Model:** Random Forest (100 trees, 37 features)
 **Approach:** 50% Training / 50% Testing Split
 

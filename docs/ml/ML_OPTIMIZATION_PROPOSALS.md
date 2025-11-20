@@ -2,7 +2,6 @@
 
 **Data utworzenia:** 2025-11-15
 **Wersja:** 1.0
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
 
 ---
 
@@ -1024,4 +1023,3 @@ Jeśli masz pytania o ML optimization:
 **Last Updated:** 2025-11-15
 **Author:** netcuter
 **Version:** 1.0
-**Branch:** `claude/security-scanner-benchmark-01AXJQMhvEtM5gmdoHnVURLp`
