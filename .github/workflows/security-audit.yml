@@ -50,9 +50,10 @@ jobs:
 
     - name: Upload SARIF to GitHub Security
       if: matrix.python-version == '3.11' && github.event_name == 'push'
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: test_sarif.sarif
+        category: security-audit
 
   lint:
     runs-on: ubuntu-latest

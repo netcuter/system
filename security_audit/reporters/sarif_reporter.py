@@ -107,6 +107,9 @@ class SARIFReporter:
 
     def _create_result(self, finding: Finding) -> Dict[str, Any]:
         """Create a SARIF result from a finding"""
+        # Ensure line number is valid for SARIF (must be >= 1)
+        line_number = finding.line_number if finding.line_number and finding.line_number >= 1 else 1
+        
         result = {
             "ruleId": self._get_rule_id(finding),
             "level": self.severity_map[finding.severity],
@@ -120,7 +123,7 @@ class SARIFReporter:
                             "uri": finding.file_path
                         },
                         "region": {
-                            "startLine": finding.line_number,
+                            "startLine": line_number,
                             "startColumn": 1
                         }
                     }
