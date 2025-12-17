@@ -156,27 +156,6 @@ Pokrywa wszystkie kategorie ASVS:
 - V9: Communication
 - V10-V14: i więcej...
 
-### 🆕 NOWOŚĆ v3.0.0: MCP Security Scanner
-
-**Skanowanie bezpieczeństwa AI Agent MCP Servers!**
-
-- **Tool Poisoning Detection** - wykrywa ukryte złośliwe instrukcje w tool descriptions
-- **MCP Rug Pull Prevention** - wykrywa zmiany w toolach po zatwierdzeniu
-- **Cross-Origin Escalation** - wykrywa tool shadowing attacks
-- **Prompt Injection** - wykrywa prompt injection w opisach narzędzi
-
-```bash
-# Skanuj MCP server
-python3 -m security_audit.scanners.mcp_security_scanner --server https://mcp.example.com/mcp
-
-# Test tool description
-python3 -m security_audit.scanners.mcp_security_scanner --test-pattern "suspicious..."
-```
-
-📚 **[Pełna dokumentacja MCP](docs/mcp/MCP_SECURITY_SCANNER.md)**
-
----
-
 ## 📦 Instalacja
 
 ```bash
